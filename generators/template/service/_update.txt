@@ -1,0 +1,31 @@
+package service
+
+import (
+	"context"
+	"github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
+	"github.com/getsentry/sentry-go"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"{{ .PackageStruct.PackageNameForImport}}/entity"
+)
+
+func (s *Service) Update{{ .Name}}(_ context.Context, request *{{ .PackageStruct.PackageName}}.Update{{ .Name}}Request) (*{{ .PackageStruct.PackageName}}.{{ .Name}}, error) {
+	{{ .NameInSnake}}, err := s.update{{ .Name}}(request)
+	if err != nil {
+		sentry.CaptureException(err)
+		return nil, status.Error(codes.Internal, "INTERNAL_ERROR")
+	}
+
+	return entity.{{ .Name}}ToProto(&{{ .NameInSnake}}), nil
+}
+
+func (s *Service) update{{ .Name}}(request *{{ .PackageStruct.PackageName}}.Update{{ .Name}}Request) (entity.{{ .Name}}, error) {
+	{{ .NameInSnake}} := entity.UpdateProtoTo{{ .Name}}(request)
+
+	_, err := s.DB.AllCols().ID({{ .NameInSnake}}.Id).Update(&{{ .NameInSnake}})
+	if err != nil {
+		return {{ .NameInSnake}}, err
+	}
+
+	return {{ .NameInSnake}}, err
+}

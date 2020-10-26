@@ -1,0 +1,51 @@
+package service
+
+import (
+	"context"
+	"github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
+	"{{ .PackageStruct.PackageNameForImport}}/entity"
+{{ .Imports}}
+)
+
+func (s *SuiteTest) TestDelete{{ .Name}}() {
+	contents :=[]*entity.{{ .Name}}{
+{{ .FinishedStruct}}
+	}
+
+
+	for _, element := range contents {
+		_, err := s.Service.DB.Insert(element)
+		if !s.NoError(err) {
+			return
+		}
+	}
+
+	request := &{{ .PackageStruct.PackageName}}.Delete{{ .Name}}Request{
+		Id: contents[0].Id,
+	}
+
+	_, err := s.Service.Delete{{ .Name}}(context.Background(), request)
+	if !s.NoError(err) {
+    	return
+    }
+
+
+	get := entity.{{ .Name}}{}
+	exist, err := s.Service.DB.ID(contents[0].Id).Get(&get)
+	if !s.NoError(err) {
+		return
+	}
+	if !s.False(exist) {
+		return
+	}
+
+    get = entity.{{ .Name}}{}
+    exist, err = s.Service.DB.ID(contents[1].Id).Get(&get)
+    if !s.NoError(err) {
+    	return
+    }
+    if !s.True(exist) {
+    	return
+    }
+{{.TestList2}}
+}

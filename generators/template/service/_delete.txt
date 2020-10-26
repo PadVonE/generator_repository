@@ -1,0 +1,30 @@
+package service
+
+import (
+	"context"
+	"github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
+	"github.com/getsentry/sentry-go"
+	"github.com/golang/protobuf/ptypes/empty"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"{{ .PackageStruct.PackageNameForImport}}/entity"
+)
+
+func (s *Service) Delete{{ .Name}}(_ context.Context, request *{{ .PackageStruct.PackageName}}.Delete{{ .Name}}Request) (*empty.Empty, error) {
+	if err := s.delete{{ .Name}}(request); err != nil {
+		sentry.CaptureException(err)
+		return nil, status.Error(codes.Internal, "INTERNAL_ERROR")
+	}
+
+	return &empty.Empty{}, nil
+}
+
+func (s *Service) delete{{ .Name}}(request *{{ .PackageStruct.PackageName}}.Delete{{ .Name}}Request) error {
+	if request.Id <= 0 {
+		return nil
+	}
+
+	_, err := s.DB.ID(request.Id).Delete(&entity.{{ .Name}}{})
+
+	return err
+}

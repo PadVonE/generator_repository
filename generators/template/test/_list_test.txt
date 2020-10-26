@@ -1,0 +1,10 @@
+package service
+
+import (
+	"context"
+	"github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
+	"{{ .PackageStruct.PackageNameForImport}}/entity"
+{{ .Imports}}
+)
+
+{{ .Functions}}

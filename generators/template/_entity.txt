@@ -1,0 +1,27 @@
+package entity
+
+import (
+	{{ .PackageStruct.PackageName}} "github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
+	"github.com/golang/protobuf/ptypes"
+	"time"
+)
+
+type {{ .Name}} struct {
+{{ .StructRows}}
+}
+
+func (n *{{ .Name}}) TableName() string {
+	return "{{ .NameInSnake}}"
+}
+
+func {{ .Name}}ToProto({{ .NameInSnake}} *{{ .Name}}) *{{ .PackageStruct.PackageName}}.{{ .Name}} {
+{{ .ToProto}}
+}
+
+func CreateProtoTo{{ .Name}}(proto *{{ .PackageStruct.PackageName}}.Create{{ .Name}}Request) {{ .Name}} {
+{{ .CreateProtoTo}}
+}
+
+func UpdateProtoTo{{ .Name}}(proto *{{ .PackageStruct.PackageName}}.Update{{ .Name}}Request) {{ .Name}} {
+{{ .UpdateProtoTo}}
+}

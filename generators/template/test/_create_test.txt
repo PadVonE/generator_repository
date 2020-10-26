@@ -1,0 +1,33 @@
+package service
+
+import (
+	"context"
+	"github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
+	"{{ .PackageStruct.PackageNameForImport}}/entity"
+{{ .Imports}}
+)
+
+func (s *SuiteTest) TestCreate{{ .Name}}() {
+	create{{ .Name}}Request := &{{ .PackageStruct.PackageName}}.Create{{ .Name}}Request{
+{{ .FinishedStruct}}
+	}
+	response, err := s.Service.Create{{ .Name}}(context.Background(), create{{ .Name}}Request)
+	if !s.NoError(err) {
+		return
+	}
+	if !s.NotZero(response.Id) {
+		return
+	}
+
+{{.TestList1}}
+
+	get := entity.{{ .Name}}{}
+	exist, err := s.Service.DB.ID(response.Id).Get(&get)
+	if !s.NoError(err) {
+		return
+	}
+	if !s.True(exist) {
+		return
+	}
+{{.TestList2}}
+}

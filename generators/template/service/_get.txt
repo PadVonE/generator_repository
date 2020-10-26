@@ -1,0 +1,38 @@
+package service
+
+import (
+	"context"
+	"github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
+	"github.com/getsentry/sentry-go"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"{{ .PackageStruct.PackageNameForImport}}/entity"
+)
+
+func (s *Service) Get{{ .Name}}(_ context.Context, request *{{ .PackageStruct.PackageName}}.Get{{ .Name}}Request) (*{{ .PackageStruct.PackageName}}.{{ .Name}}, error) {
+	content, has, err := s.get{{ .Name}}(request)
+	if err != nil {
+		sentry.CaptureException(err)
+		return nil, status.Error(codes.Internal, "INTERNAL_ERROR")
+	}
+
+	if !has {
+		return nil, status.Error(codes.NotFound, "NO_ROWS")
+	}
+
+	return entity.{{ .Name}}ToProto(content), nil
+}
+
+func (s *Service) get{{ .Name}}(request *{{ .PackageStruct.PackageName}}.Get{{ .Name}}Request) (*entity.{{ .Name}}, bool, error) {
+	content := entity.{{ .Name}}{}
+
+	query := s.DB.NewSession()
+
+	if request.Id > 0 {
+		query = query.Where("id = ?", request.Id)
+	}
+
+	has, err := query.Get(&content)
+
+	return &content, has, err
+}
