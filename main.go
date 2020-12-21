@@ -10,8 +10,8 @@ import (
 	"strings"
 )
 
-const GitHubUsername = "padvone"
-const GitHubToken = "763fa58834bb06fcf2a9ab58d03d8bd53234e828"
+const GitHubUsername = ""
+const GitHubToken = ""
 const GitRepository = "https://github.com/creatmind/proto-news-repository"
 
 const ServiceName = "news-repository"
