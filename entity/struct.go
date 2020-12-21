@@ -2,7 +2,7 @@ package entity
 
 import "strings"
 
-const TypeCurrent = 1
+const TypeMain = 1
 const TypeRequest = 2
 const TypeResponse = 3
 
@@ -34,7 +34,7 @@ func GetTypeByName(name string) (typeStruct int) {
 	}
 
 	if !strings.HasSuffix(name,"Server") && !strings.HasSuffix(name,"Client")   {
-		return TypeCurrent
+		return TypeMain
 	}
 	return
 

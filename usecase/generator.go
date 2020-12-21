@@ -6,6 +6,8 @@ import (
 	"github.com/iancoleman/strcase"
 	log "github.com/sirupsen/logrus"
 	"path/filepath"
+	"strconv"
+	"time"
 )
 
 func GenerateEntity(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct) {
@@ -13,7 +15,7 @@ func GenerateEntity(packageInfo entity.PackageStruct, serviceName string, listOf
 	servicePath := filepath.FromSlash("./" + serviceName)
 
 	for _, l := range listOfStruct {
-		if l.Type == entity.TypeCurrent {
+		if l.Type == entity.TypeMain {
 			code, err := generators.GenerateEntity(l, packageInfo)
 			if err != nil {
 				log.Error(err)
@@ -112,5 +114,30 @@ func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.P
 			}
 		}
 
+	}
+}
+
+func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct)  {
+	servicePath := filepath.FromSlash("./" + serviceName)
+
+	migration := ""
+
+	for _, l := range listOfStruct {
+		if l.Type == entity.TypeMain {
+			code, err := generators.GenerateMigration(l, packageInfo)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+			migration+=code
+		}
+	}
+	now := time.Now()
+
+	saveFilePath := servicePath + "/migrations/" + strconv.Itoa(int(now.Unix())) + "_init.up.sql"
+
+	err := FileSave(saveFilePath, migration)
+	if err == nil {
+		log.WithField("File", saveFilePath).Println("Entity created")
 	}
 }

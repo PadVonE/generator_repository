@@ -35,7 +35,6 @@ func GenerateTestDeleteCode(strc entity.ProtoInterfaceMethod, packageStruct enti
 	finishedStruct, imports := generateDeleteFinishedStruct(strc.BasicStruct)
 	structForRequest, _ := generateDeleteRequestElements(strc.BasicStruct)
 
-	log.Println(strc.BasicStruct)
 	name, _ := strc.NameInterface()
 
 	data := DataTest{

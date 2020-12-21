@@ -52,15 +52,13 @@ func generateEqualList(s1 string, s2 string, p entity.Struct) (code string) {
 	return
 }
 
-func generateRowRequest(elementName string, elementType string, inc int) (codeEntity string, codeProto string, imports string) {
+func generateRowRequest(elementName string, elementType string, inc int) (codeEntity string, imports string) {
 
 	codeEntity = ""
-	codeProto = ""
 	switch elementType {
 	case "string":
 		imports += "\t\"github.com/google/uuid\"\n"
 		codeEntity += "\t\t" + elementName + ":uuid.New().String(),\n"
-		codeProto += "\t\t" + elementName + ":uuid.New().String(),\n"
 	case "int32":
 		codeEntity += "\t\t" + elementName + ":" + strconv.Itoa(inc+1) + ",\n"
 	case "float64":

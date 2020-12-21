@@ -1,0 +1,30 @@
+package service
+
+import (
+	"context"
+	"github.com/creatmind/proto-news-repository"
+	"github.com/getsentry/sentry-go"
+	"github.com/golang/protobuf/ptypes/empty"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"news-repository/entity"
+)
+
+func (s *Service) DeleteNews(_ context.Context, request *news_repository.DeleteNewsRequest) (*empty.Empty, error) {
+	if err := s.deleteNews(request); err != nil {
+		sentry.CaptureException(err)
+		return nil, status.Error(codes.Internal, "INTERNAL_ERROR")
+	}
+
+	return &empty.Empty{}, nil
+}
+
+func (s *Service) deleteNews(request *news_repository.DeleteNewsRequest) error {
+	if request.Id <= 0 {
+		return nil
+	}
+
+	_, err := s.DB.ID(request.Id).Delete(&entity.News{})
+
+	return err
+}

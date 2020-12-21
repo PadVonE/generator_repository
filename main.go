@@ -10,15 +10,16 @@ import (
 	"strings"
 )
 
-const GitHubUsername = "padvone"
-const GitHubToken = "763fa58834bb06fcf2a9ab58d03d8bd53234e828"
-const GitRepository = "https://github.com/creatmind/proto-news-repository"
+const GitHubUsername = ""
+const GitHubToken = ""
+const GitRepository = "https://github.com/******/****"
 
-const ServiceName = "news-repository"
+const ServiceName = "teaser-repository"
 
-const IsGenerateEntity = false
+const IsGenerateEntity = true
 const IsGenerateServiceFile = true
 const IsGenerateTestFile = true
+const IsGenerateMigrationFile = false
 
 func init() {
 	// Log as JSON instead of the default ASCII formatter.
@@ -79,6 +80,10 @@ func main() {
 		usecase.GenerateEntity(packageInfo, ServiceName, listOfStruct)
 	}
 
+	if IsGenerateMigrationFile {
+		usecase.GenerateMigrationFile(packageInfo, ServiceName, listOfStruct)
+	}
+
 	dat, err := ioutil.ReadFile(funcFile)
 	if err != nil {
 		panic(err)
@@ -103,9 +108,6 @@ func main() {
 			}
 		}
 	}
-
-	log.Printf("#%v",funcList)
-	log.Fatalln(123)
 
 	if IsGenerateServiceFile {
 		usecase.GenerateServiceFiles(packageInfo, funcList, ServiceName)
