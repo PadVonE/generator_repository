@@ -67,7 +67,6 @@ func GenerateServiceFiles(packageInfo entity.PackageStruct, protoInterface entit
 	}
 }
 
-
 func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.ProtoInterface, serviceName string) {
 	var err error
 
@@ -88,16 +87,16 @@ func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.P
 		saveFileTestPath := servicePath + "/service/" + strcase.ToSnake(name) + "_" + strcase.ToSnake(action) + "_test.go"
 		codeTest := ""
 		switch action {
-			case "Create":
-				codeTest, err = generators.GenerateTestCreateCode(pi, packageInfo)
-			case "Update":
-				codeTest, err = generators.GenerateTestUpdateCode(pi, packageInfo)
-			case "Delete":
-				codeTest, err = generators.GenerateTestDeleteCode(pi, packageInfo)
-			case "Get":
-				codeTest, err = generators.GenerateTestGetCode(pi, packageInfo)
-			case "List":
-				codeTest, err = generators.GenerateTestListCode(pi, packageInfo)
+		case "Create":
+			codeTest, err = generators.GenerateTestCreateCode(pi, packageInfo)
+		case "Update":
+			codeTest, err = generators.GenerateTestUpdateCode(pi, packageInfo)
+		case "Delete":
+			codeTest, err = generators.GenerateTestDeleteCode(pi, packageInfo)
+		case "Get":
+			codeTest, err = generators.GenerateTestGetCode(pi, packageInfo)
+		case "List":
+			codeTest, err = generators.GenerateTestListCode(pi, packageInfo)
 
 		}
 
@@ -118,7 +117,7 @@ func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.P
 	}
 }
 
-func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct)  {
+func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct) {
 	servicePath := filepath.FromSlash("./../" + serviceName)
 
 	migration := ""
@@ -130,7 +129,7 @@ func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string,
 				log.Error(err)
 				continue
 			}
-			migration+=code
+			migration += code
 		}
 	}
 	now := time.Now()
@@ -143,7 +142,53 @@ func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string,
 	}
 }
 
-func GeneratePathProject(serviceName string)  {
+func GenerateGeneralFilesIfNotExist(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct) {
+
+	servicePath := filepath.FromSlash("./../" + serviceName)
+
+	listFiles := []string{
+		".gitignore",
+		"db.go",
+		"envopt.json",
+		"go.mod",
+		"go.sum",
+		"main.go",
+		"prometheus.go",
+		"server.go",
+		"service/service.go",
+		"service/service_test.go",
+	}
+	dbList := []string{}
+	for _, l := range listOfStruct {
+		if l.Type == entity.TypeMain {
+			dbList = append(dbList, strcase.ToSnake(l.Name))
+		}
+	}
+
+	for _, l := range listFiles {
+		saveFilePath := servicePath + "/" + strcase.ToSnake(l)
+
+		// Проверка на то что файл не существует
+		if _, err := os.Stat(saveFilePath); err == nil {
+			continue
+		}
+
+		code, err := generators.GenerateGeneral(l, packageInfo,dbList)
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+
+		err = FileSave(saveFilePath, code)
+		if err == nil {
+			log.WithField("File", saveFilePath).Println("Entity created")
+		}
+
+	}
+
+}
+
+func GeneratePathProject(serviceName string) {
 	servicePath := filepath.FromSlash("./../" + serviceName)
 	pathList := []string{
 		"entity",
@@ -151,9 +196,9 @@ func GeneratePathProject(serviceName string)  {
 		"service",
 	}
 
-	for _,path := range pathList{
+	for _, path := range pathList {
 
-		p := servicePath+"/"+path
+		p := servicePath + "/" + path
 
 		if _, err := os.Stat(p); os.IsNotExist(err) {
 			os.Mkdir(p, os.ModePerm)

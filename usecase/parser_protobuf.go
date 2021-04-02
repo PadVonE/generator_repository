@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"generator/entity"
+	"github.com/iancoleman/strcase"
 	log "github.com/sirupsen/logrus"
 	"go/ast"
 	"go/parser"
@@ -201,6 +202,7 @@ func ParseProtobufSourceAddress(source string) (pack entity.PackageStruct) {
 			GitCompanyName:       address[1],
 			GitRepositoryName:    address[2],
 			PackageName:          packageName,
+			PackageNameCamel:     strcase.ToCamel(packageName),
 			PackageNameForImport: PackageNameForImport,
 		}
 

@@ -22,6 +22,11 @@ type Data struct {
 	PackageStruct  entity.PackageStruct
 }
 
+type DataGeneralGenerator struct {
+	PackageStruct  entity.PackageStruct
+	DropTableCode  string
+}
+
 type DataTest struct {
 	Name           string
 	StructRows     string

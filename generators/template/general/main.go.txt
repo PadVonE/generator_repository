@@ -1,0 +1,28 @@
+package main
+
+import (
+	"github.com/getsentry/sentry-go"
+	"github.com/infothroat/envopt"
+	"log"
+	"{{ .PackageStruct.PackageNameForImport}}/service"
+)
+
+const (
+	envoptFilePath = "envopt.json"
+	isSentryDebug  = false
+)
+
+func main() {
+	envopt.Validate(envoptFilePath)
+
+	if err := sentry.Init(sentry.ClientOptions{Debug: isSentryDebug}); err != nil {
+		log.Printf("sentry init: %s", err)
+	}
+
+	s := &service.Service{}
+	s.DB = dbConnection()
+
+	go initPrometheusServer()
+
+	startServer(s)
+}

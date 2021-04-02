@@ -1,0 +1,81 @@
+package main
+
+import (
+	"fmt"
+	"github.com/getsentry/sentry-go"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/infothroat/envopt"
+	_ "github.com/lib/pq"
+	"time"
+	"xorm.io/xorm"
+)
+
+const (
+	dbDriver            = "postgres"
+	envPostgresHost     = "POSTGRES_HOST"
+	envPostgresPort     = "POSTGRES_PORT"
+	envPostgresUser     = "POSTGRES_USER"
+	envPostgresPassword = "POSTGRES_PASSWORD"
+	envPostgresDbName   = "POSTGRES_DB_NAME"
+	envPostgresSSLMode  = "POSTGRES_SSL_MODE"
+	envPostgresTZ       = "TZ"
+)
+
+func dbConnection() *xorm.Engine {
+	var db *xorm.Engine
+	var err error
+
+	for {
+		conn := fmt.Sprintf(
+			"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+			envopt.GetEnv(envPostgresHost),
+			envopt.GetEnv(envPostgresPort),
+			envopt.GetEnv(envPostgresUser),
+			envopt.GetEnv(envPostgresPassword),
+			envopt.GetEnv(envPostgresDbName),
+			envopt.GetEnv(envPostgresSSLMode),
+		)
+
+		db, err = xorm.NewEngine(dbDriver, conn)
+		if err != nil {
+			sentry.CaptureException(err)
+			time.Sleep(time.Second)
+			continue
+		}
+
+		if err := db.Ping(); err != nil {
+			sentry.CaptureException(err)
+			time.Sleep(time.Second)
+			continue
+		}
+
+		break
+	}
+
+	db.DatabaseTZ, _ = time.LoadLocation(envopt.GetEnv(envPostgresTZ))
+
+	if err := migration(db); err != nil {
+		sentry.CaptureException(err)
+	}
+
+	return db
+}
+
+func migration(db *xorm.Engine) error {
+	driver, err := postgres.WithInstance(db.DB().DB, &postgres.Config{})
+	if err != nil {
+		return fmt.Errorf("failure migration driver %w", err)
+	}
+
+	migration, err := migrate.NewWithDatabaseInstance("file://migrations", envopt.GetEnv(envPostgresDbName), driver)
+	if err != nil {
+		return fmt.Errorf("failure migration file %w", err)
+	}
+
+	if err := migration.Up(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("failure migration up %w", err)
+	}
+	return nil
+}

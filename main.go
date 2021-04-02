@@ -13,7 +13,7 @@ import (
 )
 
 const GitHubUsername = "padvone"
-const GitHubToken = "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"
+const GitHubToken = "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"
 const GitRepository = "https://github.com/fontionis/proto-fb-ad-repository"
 
 const ServiceName = "fb-ad-repository"
@@ -77,6 +77,7 @@ func main() {
 		usecase.GenerateTestFiles(packageInfo, funcList, ServiceName)
 	}
 
+	usecase.GenerateGeneralFilesIfNotExist(packageInfo, ServiceName, listOfStruct)
 
 	// Выравнивание сгенеренного кода
 	servicePath := filepath.FromSlash("./../" + ServiceName+"/")
@@ -87,15 +88,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Подтягиваем пакеты
-	//cmd2 := exec.Command("go", "get", "-u", servicePath)
-	//cmd2.Stdout = os.Stdout
-	//cmd2.Stderr = os.Stderr
-	//err = cmd.Run()
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
 
 }
 
