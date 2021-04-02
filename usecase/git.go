@@ -13,7 +13,7 @@ import (
 
 func CloningRepository(gitRepository string, basicAuth *http.BasicAuth) (clonePath string) {
 
-	clonePath = filepath.FromSlash("./generator/tmp")
+	clonePath = filepath.FromSlash("./tmp")
 	RemoveContents(clonePath)
 
 	_, err := git.PlainClone(clonePath, false, &git.CloneOptions{

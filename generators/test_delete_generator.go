@@ -14,7 +14,7 @@ import (
 
 func GenerateTestDeleteCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct) (code string, err error) {
 
-	path := filepath.FromSlash("./generator/generators/template/test/_delete_test.txt")
+	path := filepath.FromSlash("./generators/template/test/_delete_test.txt")
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
 		wd, err := os.Getwd()
 		if err != nil {

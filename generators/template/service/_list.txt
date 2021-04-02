@@ -7,12 +7,13 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"{{ .PackageStruct.PackageNameForImport}}/entity"
+{{ .Imports}}
 )
 
 
 func (s *Service) List{{ .Name}}(_ context.Context, request *{{ .PackageStruct.PackageName}}.List{{ .Name}}Request) (*{{ .PackageStruct.PackageName}}.List{{ .Name}}Response, error) {
 
-	{{ .NameInSnake}}, total, err := s.list{{ .Name}}(request)
+	{{ .NameInCamel}}, total, err := s.list{{ .Name}}(request)
 	if err != nil {
 		sentry.CaptureException(err)
 		return nil, status.Error(codes.Internal, "INTERNAL_ERROR")
@@ -25,7 +26,7 @@ func (s *Service) List{{ .Name}}(_ context.Context, request *{{ .PackageStruct.P
 	response := &{{ .PackageStruct.PackageName}}.List{{ .Name}}Response{}
 	response.Total = int32(total)
 
-	for _, item := range {{ .NameInSnake}} {
+	for _, item := range {{ .NameInCamel}} {
 		response.Items = append(response.Items, entity.{{ .Name}}ToProto(&item))
 	}
 
@@ -33,14 +34,14 @@ func (s *Service) List{{ .Name}}(_ context.Context, request *{{ .PackageStruct.P
 }
 
 func (s *Service) list{{ .Name}}(request *{{ .PackageStruct.PackageName}}.List{{ .Name}}Request) ([]entity.{{ .Name}}, int64, error) {
-	var {{ .NameInSnake}} []entity.{{ .Name}}
+	var {{ .NameInCamel}} []entity.{{ .Name}}
 	query := s.DB.NewSession()
 
-    // TODO Реализовать условия для запросов
+{{ .ListFilter}}
 
 	total, err := query.
 		Desc("{{ .NameInSnake}}.id").
-		Limit(int(request.Limit), int(request.Offset)).FindAndCount(&{{ .NameInSnake}})
+		Limit(int(request.Limit), int(request.Offset)).FindAndCount(&{{ .NameInCamel}})
 
-	return {{ .NameInSnake}}, total, err
+	return {{ .NameInCamel}}, total, err
 }

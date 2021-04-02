@@ -12,11 +12,13 @@ type Data struct {
 	Name           string
 	StructRows     string
 	NameInSnake    string
+	NameInCamel    string
 	RepositoryName string
 	ToProto        string
 	CreateProtoTo  string
 	UpdateProtoTo  string
-	ListFilter  string
+	ListFilter     string
+	Imports        string
 	PackageStruct  entity.PackageStruct
 }
 
@@ -38,9 +40,6 @@ type DataTest struct {
 	Functions        string
 }
 
-
-
-
 func generateEqualList(s1 string, s2 string, p entity.Struct) (code string) {
 
 	code = ""
@@ -55,11 +54,14 @@ func generateEqualList(s1 string, s2 string, p entity.Struct) (code string) {
 func generateRowRequest(elementName string, elementType string, inc int) (codeEntity string, imports string) {
 
 	codeEntity = ""
+
 	switch elementType {
 	case "string":
 		imports += "\t\"github.com/google/uuid\"\n"
 		codeEntity += "\t\t" + elementName + ":uuid.New().String(),\n"
 	case "int32":
+		codeEntity += "\t\t" + elementName + ":" + strconv.Itoa(inc+1) + ",\n"
+	case "int64":
 		codeEntity += "\t\t" + elementName + ":" + strconv.Itoa(inc+1) + ",\n"
 	case "float64":
 		codeEntity += "\t\t" + elementName + ":" + fmt.Sprintf("%f", rand.Float64()) + ",\n"
@@ -73,7 +75,9 @@ func generateRowRequest(elementName string, elementType string, inc int) (codeEn
 
 		imports += "\t\"time\"\n"
 		codeEntity += "\t\t" + elementName + ":time.Now(),\n"
-
+	case "[]byte":
+		imports += "\t\"github.com/google/uuid\"\n"
+		codeEntity += "\t\t" + elementName + ":[]byte(uuid.New().String()),\n"
 	default:
 		log.Warn("Type: " + elementType + " not implemented (generateRowRequest)")
 

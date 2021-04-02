@@ -13,7 +13,7 @@ import (
 
 func GenerateEntity(strc entity.Struct, packageStruct entity.PackageStruct) (code string, err error) {
 
-	path := filepath.FromSlash("./generator/generators/template/_entity.txt")
+	path := filepath.FromSlash("./generators/template/_entity.txt")
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
 		wd, err := os.Getwd()
 		if err != nil {
@@ -39,6 +39,7 @@ func GenerateEntity(strc entity.Struct, packageStruct entity.PackageStruct) (cod
 	data := Data{
 		Name:          strc.Name,
 		NameInSnake:   strcase.ToSnake(strc.Name),
+		NameInCamel:   strcase.ToLowerCamel(strc.Name),
 		StructRows:    rows,
 		ToProto:       ToProto(strc, packageStruct.PackageName),
 		CreateProtoTo: CreatrProtoTo(strc),
@@ -84,18 +85,19 @@ func ToProto(strc entity.Struct, repositoryName string) (code string) {
 	for _, row := range strc.Rows {
 		switch row.Name {
 		case "CreatedAt":
-			code += "\tcreatedAt, _ := ptypes.TimestampProto(" + strcase.ToSnake(strc.Name) + ".CreatedAt)\n"
+			code += "\tcreatedAt := timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".CreatedAt)\n"
 		case "UpdatedAt":
-			code += "\tupdatedAt, _ := ptypes.TimestampProto(" + strcase.ToSnake(strc.Name) + ".UpdatedAt)\n"
+			code += "\tupdatedAt := timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".UpdatedAt)\n"
 		case "DeletedAt":
-			code += "\tdeletedAt, _ := ptypes.TimestampProto(" + strcase.ToSnake(strc.Name) + ".DeletedAt)\n"
+			code += "\tdeletedAt := timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".DeletedAt)\n"
 		case "PublicDate":
-			code += "\tpublicDate, _ := ptypes.TimestampProto(" + strcase.ToSnake(strc.Name) + ".PublicDate)\n"
+			code += "\tpublicDate := timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".PublicDate)\n"
 		}
 	}
 
 	code += "\n"
 	code += "\treturn &" + repositoryName + "." + strc.Name + "{"
+	code += "\n"
 
 	for _, row := range strc.Rows {
 		code += "\t\t"
@@ -107,7 +109,7 @@ func ToProto(strc entity.Struct, repositoryName string) (code string) {
 		case "PublicDate":
 			code += "PublicDate:  publicDate,\n"
 		default:
-			code += "" + row.Name + ":   " + strcase.ToSnake(strc.Name) + "." + row.Name + ",\n"
+			code += "" + row.Name + ":   " + strcase.ToLowerCamel(strc.Name) + "." + row.Name + ",\n"
 		}
 	}
 	code += "\t}"
@@ -128,7 +130,7 @@ func CreatrProtoTo(strc entity.Struct) (code string) {
 
 		switch row.Type {
 		case "*timestamp.Timestamp":
-			code = "\t" + strcase.ToLowerCamel(row.Name) + ",_ := ptypes.Timestamp(proto." + row.Name + ")\n\n" + code
+			code = "\t" + strcase.ToLowerCamel(row.Name) + " := timestamppb.New(proto." + row.Name + ")\n\n" + code
 			code += "\t\t" + row.Name + ": " + strcase.ToLowerCamel(row.Name) + ",\n"
 		default:
 			code += "\t\t" + row.Name + ": proto." + row.Name + ",\n"
@@ -136,7 +138,7 @@ func CreatrProtoTo(strc entity.Struct) (code string) {
 		}
 
 	}
-	code += "\t}\n"
+	code += "\t}"
 
 	return
 }
@@ -152,7 +154,7 @@ func UpdateProtoTo(strc entity.Struct) (code string) {
 
 		switch row.Type {
 		case "*timestamp.Timestamp":
-			code = "\t" + strcase.ToLowerCamel(row.Name) + ",_ := ptypes.Timestamp(proto." + row.Name + ")\n\n" + code
+			code = "\t" + strcase.ToLowerCamel(row.Name) + ",_ := timestamppb.New(proto." + row.Name + ")\n\n" + code
 			code += "\t\t" + row.Name + ": " + strcase.ToLowerCamel(row.Name) + ",\n"
 		default:
 			code += "\t\t" + row.Name + ": proto." + row.Name + ",\n"
@@ -160,7 +162,7 @@ func UpdateProtoTo(strc entity.Struct) (code string) {
 		}
 
 	}
-	code += "\t}\n"
+	code += "\t}"
 
 	return
 }

@@ -15,8 +15,8 @@ import (
 
 func GenerateTestGetCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct) (code string, err error) {
 	
-	path := filepath.FromSlash("./generator/generators/template/test/_get_test.txt")
-	pathFunc := filepath.FromSlash("./generator/generators/template/test/_get/_func.txt")
+	path := filepath.FromSlash("./generators/template/test/_get_test.txt")
+	pathFunc := filepath.FromSlash("./generators/template/test/_get/_func.txt")
 
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
 		wd, err := os.Getwd()

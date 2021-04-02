@@ -10,22 +10,22 @@ import (
 )
 
 func (s *Service) Update{{ .Name}}(_ context.Context, request *{{ .PackageStruct.PackageName}}.Update{{ .Name}}Request) (*{{ .PackageStruct.PackageName}}.{{ .Name}}, error) {
-	{{ .NameInSnake}}, err := s.update{{ .Name}}(request)
+	{{ .NameInCamel}}, err := s.update{{ .Name}}(request)
 	if err != nil {
 		sentry.CaptureException(err)
 		return nil, status.Error(codes.Internal, "INTERNAL_ERROR")
 	}
 
-	return entity.{{ .Name}}ToProto(&{{ .NameInSnake}}), nil
+	return entity.{{ .Name}}ToProto(&{{ .NameInCamel}}), nil
 }
 
 func (s *Service) update{{ .Name}}(request *{{ .PackageStruct.PackageName}}.Update{{ .Name}}Request) (entity.{{ .Name}}, error) {
-	{{ .NameInSnake}} := entity.UpdateProtoTo{{ .Name}}(request)
+	{{ .NameInCamel}} := entity.UpdateProtoTo{{ .Name}}(request)
 
-	_, err := s.DB.AllCols().ID({{ .NameInSnake}}.Id).Update(&{{ .NameInSnake}})
+	_, err := s.DB.AllCols().ID({{ .NameInCamel}}.Id).Update(&{{ .NameInCamel}})
 	if err != nil {
-		return {{ .NameInSnake}}, err
+		return {{ .NameInCamel}}, err
 	}
 
-	return {{ .NameInSnake}}, err
+	return {{ .NameInCamel}}, err
 }

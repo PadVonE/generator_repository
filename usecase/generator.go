@@ -5,6 +5,7 @@ import (
 	"generator/generators"
 	"github.com/iancoleman/strcase"
 	log "github.com/sirupsen/logrus"
+	"os"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -12,7 +13,7 @@ import (
 
 func GenerateEntity(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct) {
 
-	servicePath := filepath.FromSlash("./" + serviceName)
+	servicePath := filepath.FromSlash("./../" + serviceName)
 
 	for _, l := range listOfStruct {
 		if l.Type == entity.TypeMain {
@@ -35,7 +36,7 @@ func GenerateEntity(packageInfo entity.PackageStruct, serviceName string, listOf
 func GenerateServiceFiles(packageInfo entity.PackageStruct, protoInterface entity.ProtoInterface, serviceName string) {
 	var err error
 
-	servicePath := filepath.FromSlash("./" + serviceName)
+	servicePath := filepath.FromSlash("./../" + serviceName)
 
 	for _, pi := range protoInterface.Methods {
 		// Generate file
@@ -70,7 +71,7 @@ func GenerateServiceFiles(packageInfo entity.PackageStruct, protoInterface entit
 func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.ProtoInterface, serviceName string) {
 	var err error
 
-	servicePath := filepath.FromSlash("./" + serviceName)
+	servicePath := filepath.FromSlash("./../" + serviceName)
 
 	for _, pi := range protoInterface.Methods {
 		// Generate file
@@ -118,7 +119,7 @@ func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.P
 }
 
 func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct)  {
-	servicePath := filepath.FromSlash("./" + serviceName)
+	servicePath := filepath.FromSlash("./../" + serviceName)
 
 	migration := ""
 
@@ -140,4 +141,23 @@ func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string,
 	if err == nil {
 		log.WithField("File", saveFilePath).Println("Entity created")
 	}
+}
+
+func GeneratePathProject(serviceName string)  {
+	servicePath := filepath.FromSlash("./../" + serviceName)
+	pathList := []string{
+		"entity",
+		"migrations",
+		"service",
+	}
+
+	for _,path := range pathList{
+
+		p := servicePath+"/"+path
+
+		if _, err := os.Stat(p); os.IsNotExist(err) {
+			os.Mkdir(p, os.ModePerm)
+		}
+	}
+
 }

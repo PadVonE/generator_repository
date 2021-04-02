@@ -2,7 +2,7 @@ package entity
 
 import (
 	{{ .PackageStruct.PackageName}} "github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
-	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"time"
 )
 
@@ -14,7 +14,7 @@ func (n *{{ .Name}}) TableName() string {
 	return "{{ .NameInSnake}}"
 }
 
-func {{ .Name}}ToProto({{ .NameInSnake}} *{{ .Name}}) *{{ .PackageStruct.PackageName}}.{{ .Name}} {
+func {{ .Name}}ToProto({{ .NameInCamel}} *{{ .Name}}) *{{ .PackageStruct.PackageName}}.{{ .Name}} {
 {{ .ToProto}}
 }
 
