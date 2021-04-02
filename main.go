@@ -12,19 +12,6 @@ import (
 	"strings"
 )
 
-const GitHubUsername = "padvone"
-const GitHubToken = "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"
-const GitRepository = "https://github.com/fontionis/proto-fb-ad-repository"
-
-const ServiceName = "fb-ad-repository"
-
-const IsCreateProjectStructure = true
-
-const IsGenerateMigrationFile = false
-const IsGenerateEntity = true
-
-const IsGenerateServiceFile = true
-const IsGenerateTestFile = true
 
 func init() {
 	// Log as JSON instead of the default ASCII formatter.
