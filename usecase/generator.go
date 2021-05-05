@@ -17,7 +17,23 @@ func GenerateEntity(packageInfo entity.PackageStruct, serviceName string, listOf
 
 	for _, l := range listOfStruct {
 		if l.Type == entity.TypeMain {
-			code, err := generators.GenerateEntity(l, packageInfo)
+
+			createFunction := false
+			updateFunction := false
+			
+			// Определяем нужны ли функиции для создания и обновления даннх
+			for _, tempStruct := range listOfStruct {
+				if tempStruct.Name=="Create"+l.Name+"Request" {
+					createFunction = true
+				}
+				if tempStruct.Name=="Update"+l.Name+"Request" {
+					updateFunction = true
+				}
+			}
+
+
+
+			code, err := generators.GenerateEntity(l, packageInfo,createFunction,updateFunction)
 			if err != nil {
 				log.Error(err)
 				continue
@@ -158,6 +174,7 @@ func GenerateGeneralFilesIfNotExist(packageInfo entity.PackageStruct, serviceNam
 		"service/service.go",
 		"service/service_test.go",
 	}
+
 	dbList := []string{}
 	for _, l := range listOfStruct {
 		if l.Type == entity.TypeMain {

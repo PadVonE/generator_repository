@@ -23,20 +23,21 @@ type Data struct {
 }
 
 type DataGeneralGenerator struct {
-	PackageStruct  entity.PackageStruct
-	DropTableCode  string
+	PackageStruct entity.PackageStruct
+	DropTableCode string
 }
 
 type DataTest struct {
-	Name           string
-	StructRows     string
-	FilterBy       string
-	Imports        string
-	NameInSnake    string
-	NameInPascale  string
-	NameInCamel    string
-	RepositoryName string
-	PackageStruct  entity.PackageStruct
+	Name            string
+	StructRows      string
+	FilterBy        string
+	Imports         string
+	NameInSnake     string
+	NameInPascale   string
+	NameInCamel     string
+	RepositoryName  string
+	RealisationTest string
+	PackageStruct   entity.PackageStruct
 
 	FinishedStruct   string
 	StructForRequest string
@@ -49,6 +50,12 @@ func generateEqualList(s1 string, s2 string, p entity.Struct) (code string) {
 
 	code = ""
 	for _, element := range p.Rows {
+		if element.Name=="Id" ||
+			element.Name=="CreatedAt" ||
+			element.Name=="UpdatedAt" ||
+			element.Name=="PublicDate" {
+			continue
+		}
 		code += "\ts.Equal(" + s1 + "." + element.Name + ", " + s2 + "." + element.Name + ")"
 		code += "\n"
 	}

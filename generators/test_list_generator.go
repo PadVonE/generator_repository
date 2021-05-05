@@ -60,6 +60,29 @@ func GenerateTestListCode(strc entity.ProtoInterfaceMethod, packageStruct entity
 	listRequestElement,imports := generateGetRequestElement(strc.BasicStruct)
 
 	for _,rs := range strc.RequestStruct.Rows{
+		realisation := "// TODO implement test"
+
+		log.Println("rs.Type+++++++++++++",rs.Type,rs.Name)
+		switch rs.Type {
+		case "int32":
+			switch rs.Name {
+			case "Limit":
+				realisation = testByLimit(packageStruct,strc.BasicStruct,name)
+			case "Offset":
+				realisation = testByOffset(packageStruct,strc.BasicStruct,name)
+			default:
+				realisation = testByOtherInt(packageStruct,strc.BasicStruct,name,rs.Name)
+			}
+		case "string":
+			switch rs.Name {
+			case "Search":
+				realisation = testByLimit(packageStruct,strc.BasicStruct,name)
+			default:
+				realisation = testTemplate(packageStruct,strc.BasicStruct,name,rs.Name)
+			}
+		default:
+			realisation = testTemplate(packageStruct,strc.BasicStruct,name,rs.Name)
+		}
 
 		data := DataTest{
 			Name:           name,
@@ -69,6 +92,7 @@ func GenerateTestListCode(strc entity.ProtoInterfaceMethod, packageStruct entity
 			PackageStruct:  packageStruct,
 			FinishedStruct: listRequestElement,
 			TestList2:      generateEqualList("contents[1]","response",strc.BasicStruct),
+			RealisationTest: realisation,
 		}
 
 		var funcTpl bytes.Buffer
@@ -128,6 +152,117 @@ func generateListRequestElement(p entity.Struct) (code string,imports string) {
 	}
 
 	return
+}
+
+func testByLimit(packageStruct entity.PackageStruct,p entity.Struct,name string) (code string) {
+
+	code += "\tlist"+name+"Request := &"+packageStruct.PackageName+".List"+name+"Request{\n"
+	code += "\t\tLimit: 2,\n"
+	code += "\t}\n"
+
+	code += "\tresponse, err := s.Service.List"+name+"(context.Background(), list"+name+"Request)\n"
+	code += "\tif !s.NoError(err) {	return }\n"
+	code += "\tif !s.Equal(int32(3), response.Total) {	return }\n"
+	code += "\tif !s.Equal(2, len(response.Items)) {	return }\n"
+	code += "\n\n"
+
+
+	code += generateEqualList("contents[2]","response.Items[0]",p)
+	code += "\n\n"
+
+	code += generateEqualList("contents[1]","response.Items[1]",p)
+
+	return
+
+}
+
+func testByOffset(packageStruct entity.PackageStruct,p entity.Struct,name string) (code string) {
+
+	code += "\tlist"+name+"Request := &"+packageStruct.PackageName+".List"+name+"Request{\n"
+	code += "\t\tLimit: 2,\n"
+	code += "\t\tOffset: 1,\n"
+	code += "\t}\n"
+
+	code += "\tresponse, err := s.Service.List"+name+"(context.Background(), list"+name+"Request)\n"
+	code += "\tif !s.NoError(err) {	return }\n"
+	code += "\tif !s.Equal(int32(3), response.Total) {	return }\n"
+	code += "\tif !s.Equal(2, len(response.Items)) {	return }\n"
+	code += "\n\n"
+
+	code += generateEqualList("contents[1]","response.Items[0]",p)
+	code += "\n\n"
+	code += generateEqualList("contents[0]","response.Items[1]",p)
+
+	return
+
+}
+
+func testByOtherInt(packageStruct entity.PackageStruct,p entity.Struct,name string,rowName string) (code string) {
+
+	code += "\tlist"+name+"Request := &"+packageStruct.PackageName+".List"+name+"Request{\n"
+	code += "\t\t"+rowName+": contents[1]."+rowName+",\n"
+	code += "\t}\n"
+
+	code += "\tresponse, err := s.Service.List"+name+"(context.Background(), list"+name+"Request)\n"
+	code += "\tif !s.NoError(err) {	return }\n"
+	code += "\tif !s.Equal(1, len(response.Items)) {	return }\n"
+	code += "\n\n"
+
+	code += generateEqualList("contents[1]","response.Items[0]",p)
+
 	return
 }
+
+func testTemplate(packageStruct entity.PackageStruct,p entity.Struct,name string,rowName string) (code string) {
+	code += "/* \n"
+
+	code += "\tlist"+name+"Request := &"+packageStruct.PackageName+".List"+name+"Request{\n"
+	code += "\t\t// TODO implement conditions\n"
+	code += "\t}\n"
+
+	code += "\tresponse, err := s.Service.List"+name+"(context.Background(), list"+name+"Request)\n"
+	code += "\tif !s.NoError(err) {	return }\n"
+	code += "\tif !s.Equal(1, len(response.Items)) {	return }\n"
+	code += "\n\n"
+
+	code += generateEqualList("contents[]","response.Items[]",p)
+	code += "*/ \n"
+	return
+}
+
+
+
+func testBySearch(packageStruct entity.PackageStruct,p entity.Struct,name string) (code string) {
+
+	code += "\tlist"+name+"Request := &"+packageStruct.PackageName+".List"+name+"Request{\n"
+	code += "\t\tLimit: 2,\n"
+	code += "\t\tSearch: contents[1].Title[10:30],\n"
+	code += "\t}\n"
+
+	code += "\tresponse, err := s.Service.List"+name+"(context.Background(), list"+name+"Request)\n"
+	code += "\tif !s.NoError(err) {	return }\n"
+	code += "\tif !s.Equal(int32(1), response.Total) {	return }\n"
+	code += "\tif !s.Equal(1, len(response.Items)) {	return }\n"
+	code += "\n\n"
+
+	code += generateEqualList("contents[1]","response.Items[0]",p)
+	code += "\n\n"
+
+
+	code += "\tlist"+name+"Request := &"+packageStruct.PackageName+".List"+name+"Request{\n"
+	code += "\t\tLimit: 2,\n"
+	code += "\t\tSearch: fmt.Sprintf(\"%d\", contents[2].Id),\n"
+	code += "\t}\n"
+
+	code += "\tresponse, err := s.Service.List"+name+"(context.Background(), list"+name+"Request)\n"
+	code += "\tif !s.NoError(err) {	return }\n"
+	code += "\tif !s.Equal(int32(1), response.Total) {	return }\n"
+	code += "\tif !s.Equal(1, len(response.Items)) {	return }\n"
+	code += "\n\n"
+	code += generateEqualList("contents[2]","response.Items[0]",p)
+
+	return
+
+}
+
 

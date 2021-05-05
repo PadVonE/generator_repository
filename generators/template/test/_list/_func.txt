@@ -10,5 +10,5 @@ func (s *SuiteTest) TestList{{ .Name}}_by{{ .FilterBy}}() {
 		}
 	}
 
-    // TODO implement test
+{{ .RealisationTest}}
 }

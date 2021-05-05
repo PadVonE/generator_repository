@@ -128,6 +128,5 @@ func generateGetRequestElement(p entity.Struct) (code string,imports string) {
 	}
 
 	return
-	return
 }
 

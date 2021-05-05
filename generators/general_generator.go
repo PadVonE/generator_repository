@@ -50,8 +50,13 @@ func GenerateGeneral(file string, packageStruct entity.PackageStruct,tableNames 
 
 func DropTableCode(tableNames []string) (code string) {
 	code = ""
-	for _, table := range tableNames {
-		code += "\t_, err := s.Service.DB.Exec(\"DELETE FROM "+table+"\")\n\ts.NoError(err)\n\n"
+
+	for index, table := range tableNames {
+		if index==0 {
+			code += "\t_, err := s.Service.DB.Exec(\"DELETE FROM "+table+"\")\n\ts.NoError(err)\n\n"
+		}
+
+		code += "\t_, err = s.Service.DB.Exec(\"DELETE FROM "+table+"\")\n\ts.NoError(err)\n\n"
 	}
 	return
 }

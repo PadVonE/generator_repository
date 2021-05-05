@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	"xorm.io/xorm"
+	"github.com/go-xorm/xorm"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"

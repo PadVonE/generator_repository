@@ -18,10 +18,6 @@ func {{ .Name}}ToProto({{ .NameInCamel}} *{{ .Name}}) *{{ .PackageStruct.Package
 {{ .ToProto}}
 }
 
-func CreateProtoTo{{ .Name}}(proto *{{ .PackageStruct.PackageName}}.Create{{ .Name}}Request) {{ .Name}} {
 {{ .CreateProtoTo}}
-}
 
-func UpdateProtoTo{{ .Name}}(proto *{{ .PackageStruct.PackageName}}.Update{{ .Name}}Request) {{ .Name}} {
 {{ .UpdateProtoTo}}
-}
