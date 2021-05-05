@@ -82,20 +82,7 @@ func generateRow(field entity.StructField) string {
 
 func ToProto(strc entity.Struct, repositoryName string) (code string) {
 	code = "\n"
-	for _, row := range strc.Rows {
-		switch row.Name {
-		case "CreatedAt":
-			code += "\tcreatedAt := timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".CreatedAt)\n"
-		case "UpdatedAt":
-			code += "\tupdatedAt := timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".UpdatedAt)\n"
-		case "DeletedAt":
-			code += "\tdeletedAt := timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".DeletedAt)\n"
-		case "PublicDate":
-			code += "\tpublicDate := timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".PublicDate)\n"
-		}
-	}
 
-	code += "\n"
 	code += "\treturn &" + repositoryName + "." + strc.Name + "{"
 	code += "\n"
 
@@ -103,11 +90,11 @@ func ToProto(strc entity.Struct, repositoryName string) (code string) {
 		code += "\t\t"
 		switch row.Name {
 		case "CreatedAt":
-			code += "CreatedAt:  createdAt,\n"
+			code += "CreatedAt:  timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".CreatedAt),\n"
 		case "UpdatedAt":
-			code += "UpdatedAt:  updatedAt,\n"
+			code += "UpdatedAt:  timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".UpdatedAt),\n"
 		case "PublicDate":
-			code += "PublicDate:  publicDate,\n"
+			code += "PublicDate:  timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".PublicDate),\n"
 		default:
 			code += "" + row.Name + ":   " + strcase.ToLowerCamel(strc.Name) + "." + row.Name + ",\n"
 		}
