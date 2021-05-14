@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"strconv"
+	"strings"
 )
 
 type Data struct {
@@ -50,8 +51,7 @@ func generateEqualList(s1 string, s2 string, p entity.Struct) (code string) {
 
 	code = ""
 	for _, element := range p.Rows {
-		if element.Name=="Id" ||
-			element.Name=="CreatedAt" ||
+		if 	element.Name=="CreatedAt" ||
 			element.Name=="UpdatedAt" ||
 			element.Name=="PublicDate" {
 			continue
@@ -91,6 +91,11 @@ func generateRowRequest(elementName string, elementType string, inc int) (codeEn
 		imports += "\t\"github.com/google/uuid\"\n"
 		codeEntity += "\t\t" + elementName + ":[]byte(uuid.New().String()),\n"
 	default:
+		if strings.Contains(elementType, "Type") || strings.Contains(elementType, "Status"){
+			codeEntity += "\t\t" + elementName + ":" + strconv.Itoa(inc+1) + ",\n"
+			break
+		}
+
 		log.Warn("Type: " + elementType + " not implemented (generateRowRequest)")
 
 	}

@@ -39,9 +39,6 @@ func main() {
 	if IsCreateProjectStructure {
 		// Создание структуры папок
 		usecase.GeneratePathProject(ServiceName)
-
-		// TODO Создание стартовых файлов которые в корне
-
 	}
 
 	// Генерируем файлы со структурами

@@ -6,6 +6,7 @@ import (
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"io/ioutil"
+	"strings"
 
 	"os"
 	"path/filepath"
@@ -13,7 +14,10 @@ import (
 
 func CloningRepository(gitRepository string, basicAuth *http.BasicAuth) (clonePath string) {
 
-	clonePath = filepath.FromSlash("./tmp")
+	repositoryNameSpliced := strings.Split(gitRepository, "/")
+
+	clonePath = filepath.FromSlash("./tmp/"+repositoryNameSpliced[len(repositoryNameSpliced)-1])
+
 	RemoveContents(clonePath)
 
 	_, err := git.PlainClone(clonePath, false, &git.CloneOptions{

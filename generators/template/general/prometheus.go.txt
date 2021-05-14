@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/infothroat/envopt"
+	"github.com/{{ .PackageStruct.GitCompanyName}}/envopt"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"

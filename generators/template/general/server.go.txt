@@ -2,7 +2,7 @@ package main
 
 import (
     "github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
-	"github.com/infothroat/envopt"
+	"github.com/{{ .PackageStruct.GitCompanyName}}/envopt"
 	"go.elastic.co/apm/module/apmgrpc"
 	"google.golang.org/grpc"
 	"log"

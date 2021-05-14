@@ -160,19 +160,26 @@ func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string,
 
 func GenerateGeneralFilesIfNotExist(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct) {
 
+	type GeneralFile struct {
+		FileName string
+		Replace bool
+	}
+
 	servicePath := filepath.FromSlash("./../" + serviceName)
 
-	listFiles := []string{
-		".gitignore",
-		"db.go",
-		"envopt.json",
-		"go.mod",
-		"go.sum",
-		"main.go",
-		"prometheus.go",
-		"server.go",
-		"service/service.go",
-		"service/service_test.go",
+	listFiles := []GeneralFile{
+		{".gitignore",false},
+		{"db.go",false},
+		{"envopt.json",false},
+		{"envopt_test.json",false},
+		{"go.mod",false},
+		{"go.sum",false},
+		{"main.go",false},
+		{"server.go",false},
+		{"service/service.go",false},
+		{"service/service_test.go",true},
+		//{"prometheus.go",false},
+
 	}
 
 	dbList := []string{}
@@ -183,14 +190,17 @@ func GenerateGeneralFilesIfNotExist(packageInfo entity.PackageStruct, serviceNam
 	}
 
 	for _, l := range listFiles {
-		saveFilePath := servicePath + "/" + strcase.ToSnake(l)
+		saveFilePath := servicePath + "/" + strcase.ToSnake(l.FileName)
 
 		// Проверка на то что файл не существует
-		if _, err := os.Stat(saveFilePath); err == nil {
-			continue
+		if !l.Replace {
+			if _, err := os.Stat(saveFilePath); err == nil {
+				continue
+			}
 		}
 
-		code, err := generators.GenerateGeneral(l, packageInfo,dbList)
+
+		code, err := generators.GenerateGeneral(l.FileName, packageInfo,dbList)
 		if err != nil {
 			log.Error(err)
 			continue

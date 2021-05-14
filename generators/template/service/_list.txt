@@ -13,7 +13,7 @@ import (
 
 func (s *Service) List{{ .Name}}(_ context.Context, request *{{ .PackageStruct.PackageName}}.List{{ .Name}}Request) (*{{ .PackageStruct.PackageName}}.List{{ .Name}}Response, error) {
 
-	{{ .NameInCamel}}, total, err := s.list{{ .Name}}(request)
+	items, total, err := s.list{{ .Name}}(request)
 	if err != nil {
 		sentry.CaptureException(err)
 		return nil, status.Error(codes.Internal, "INTERNAL_ERROR")
@@ -26,7 +26,7 @@ func (s *Service) List{{ .Name}}(_ context.Context, request *{{ .PackageStruct.P
 	response := &{{ .PackageStruct.PackageName}}.List{{ .Name}}Response{}
 	response.Total = int32(total)
 
-	for _, item := range {{ .NameInCamel}} {
+	for _, item := range items {
 		response.Items = append(response.Items, entity.{{ .Name}}ToProto(&item))
 	}
 
@@ -34,14 +34,14 @@ func (s *Service) List{{ .Name}}(_ context.Context, request *{{ .PackageStruct.P
 }
 
 func (s *Service) list{{ .Name}}(request *{{ .PackageStruct.PackageName}}.List{{ .Name}}Request) ([]entity.{{ .Name}}, int64, error) {
-	var {{ .NameInCamel}} []entity.{{ .Name}}
+	var items []entity.{{ .Name}}
 	query := s.DB.NewSession()
 
 {{ .ListFilter}}
 
 	total, err := query.
 		Desc("{{ .NameInSnake}}.id").
-		Limit(int(request.Limit), int(request.Offset)).FindAndCount(&{{ .NameInCamel}})
+		Limit(int(request.Limit), int(request.Offset)).FindAndCount(&items)
 
-	return {{ .NameInCamel}}, total, err
+	return items, total, err
 }

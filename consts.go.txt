@@ -12,3 +12,5 @@ const IsGenerateEntity = true
 
 const IsGenerateServiceFile = true
 const IsGenerateTestFile = true
+
+const ReplaceFile = true

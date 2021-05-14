@@ -77,12 +77,26 @@ func ListFilter(request entity.Struct, nameInSnake string) (code string, imports
 			code += "\tif request." + row.Name + " != 0 {\n" +
 				"\t\tquery = query.Where(\"" + nameInSnake + "." + strcase.ToSnake(row.Name) + "\", request." + row.Name + ")\n" +
 				"\t}\n\n"
+	    case "*timestamp.Timestamp":
+			code += "\n\t// TODO Поставить правильное условие " + row.Name + "(" + strcase.ToSnake(row.Name) + ") in table " + nameInSnake + "\n"
+			code += "\tif request." + row.Name + " != nil {\n" +
+				"\t\tquery.Where(\""+ nameInSnake + "." + strcase.ToSnake(row.Name) + "= ?\", request.DateStart.AsTime())\n" +
+				"\t}\n\n"
 
 		default:
+
+			if strings.Contains(row.Name, "Type") || strings.Contains(row.Name, "Status"){
+				code += "\tif request." + row.Name + " != 0 {\n" +
+					"\t\tquery = query.Where(\"" + nameInSnake + "." + strcase.ToSnake(row.Name) + "\", request." + row.Name + ")\n" +
+					"\t}\n\n"
+				break
+			}
+
+
 			code += "\n\n"
 			code += "\t// TODO not implemented " + row.Name + "(" + strcase.ToSnake(row.Name) + ") in table " + nameInSnake
 			code += "\n\n"
-			log.Warn("Type: " + row.Type + " not implemented (Generate Entity ListFilter)")
+			log.Warn("Type: " + row.Name  + "  " + row.Type + " not implemented (Generate Entity ListFilter)")
 		}
 	}
 

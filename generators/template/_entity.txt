@@ -10,7 +10,7 @@ type {{ .Name}} struct {
 {{ .StructRows}}
 }
 
-func (n *{{ .Name}}) TableName() string {
+func ({{ .NameInCamel}} *{{ .Name}}) TableName() string {
 	return "{{ .NameInSnake}}"
 }
 

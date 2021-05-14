@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/getsentry/sentry-go"
-	"github.com/infothroat/envopt"
+	"github.com/{{ .PackageStruct.GitCompanyName}}/envopt"
 	"log"
 	"{{ .PackageStruct.PackageNameForImport}}/service"
 )

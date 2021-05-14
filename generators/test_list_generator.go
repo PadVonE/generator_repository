@@ -62,7 +62,6 @@ func GenerateTestListCode(strc entity.ProtoInterfaceMethod, packageStruct entity
 	for _,rs := range strc.RequestStruct.Rows{
 		realisation := "// TODO implement test"
 
-		log.Println("rs.Type+++++++++++++",rs.Type,rs.Name)
 		switch rs.Type {
 		case "int32":
 			switch rs.Name {
@@ -78,6 +77,7 @@ func GenerateTestListCode(strc entity.ProtoInterfaceMethod, packageStruct entity
 			case "Search":
 				realisation = testByLimit(packageStruct,strc.BasicStruct,name)
 			default:
+				log.Println("List generator: not implemented test on field and type",rs.Name,rs.Type)
 				realisation = testTemplate(packageStruct,strc.BasicStruct,name,rs.Name)
 			}
 		default:
