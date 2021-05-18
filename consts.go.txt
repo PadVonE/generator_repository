@@ -7,7 +7,7 @@ const ServiceName = "-repository"
 
 const IsCreateProjectStructure = true
 
-const IsGenerateMigrationFile = false
+const IsGenerateMigrationFile = true
 const IsGenerateEntity = true
 
 const IsGenerateServiceFile = true
