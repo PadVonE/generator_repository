@@ -12,7 +12,7 @@ import (
 	"text/template"
 )
 
-func GenerateEntity(strc entity.Struct, packageStruct entity.PackageStruct,createFunc bool,updateFunc bool) (code string, err error) {
+func GenerateEntity(strc entity.Struct, packageStruct entity.PackageStruct, createFunc bool, updateFunc bool) (code string, err error) {
 
 	path := filepath.FromSlash("./generators/template/_entity.txt")
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
@@ -40,10 +40,10 @@ func GenerateEntity(strc entity.Struct, packageStruct entity.PackageStruct,creat
 	createProtoTo := ""
 	updateProtoTo := ""
 	if createFunc {
-		createProtoTo = CreateProtoTo(strc,packageStruct.PackageName)
+		createProtoTo = CreateProtoTo(strc, packageStruct.PackageName)
 	}
 	if updateFunc {
-		updateProtoTo = UpdateProtoTo(strc,packageStruct.PackageName)
+		updateProtoTo = UpdateProtoTo(strc, packageStruct.PackageName)
 	}
 
 	data := Data{
@@ -115,8 +115,8 @@ func ToProto(strc entity.Struct, repositoryName string) (code string) {
 		case "int32", "int64", "string", "float32", "float64":
 			code += "" + row.Name + ":   " + strcase.ToLowerCamel(strc.Name) + "." + row.Name + ",\n"
 		default:
-			if strings.Contains(row.Type, "Type") || strings.Contains(row.Type, "Status")   {
-				code += "" + row.Name + ": "+repositoryName+"."+row.Type+"(" + strcase.ToLowerCamel(strc.Name) + "."+row.Name + "),\n"
+			if strings.Contains(row.Type, "Type") || strings.Contains(row.Type, "Status") {
+				code += "" + row.Name + ": " + repositoryName + "." + row.Type + "(" + strcase.ToLowerCamel(strc.Name) + "." + row.Name + "),\n"
 				break
 			}
 
@@ -131,9 +131,9 @@ func ToProto(strc entity.Struct, repositoryName string) (code string) {
 	return
 }
 
-func CreateProtoTo(strc entity.Struct,pkg string) (code string) {
+func CreateProtoTo(strc entity.Struct, pkg string) (code string) {
 
-	code += "func CreateProtoTo"+strc.Name+"(proto *"+pkg+".Create"+strc.Name+"Request) "+strc.Name+" {"
+	startFinction := "func CreateProtoTo" + strc.Name + "(proto *" + pkg + ".Create" + strc.Name + "Request) " + strc.Name + " {"
 
 	code += "\n\treturn " + strc.Name + "{\n"
 	for _, row := range strc.Rows {
@@ -146,8 +146,8 @@ func CreateProtoTo(strc entity.Struct,pkg string) (code string) {
 
 		switch row.Type {
 		case "*timestamp.Timestamp":
-			code = "\t" + strcase.ToLowerCamel(row.Name) + " := timestamppb.New(proto." + row.Name + ")\n\n" + code
-			code += "\t\t" + row.Name + ": " + strcase.ToLowerCamel(row.Name) + ",\n"
+		//	code += "\t" + strcase.ToLowerCamel(row.Name) + " := timestamppb.New(proto." + row.Name + ")\n\n" + code
+			code += "\t\t" + row.Name + ":  proto." + row.Name + ".AsTime(),\n"
 		case "int32", "int64", "string", "float32", "float64":
 			code += "\t\t" + row.Name + ": proto." + row.Name + ",\n"
 		default:
@@ -163,12 +163,14 @@ func CreateProtoTo(strc entity.Struct,pkg string) (code string) {
 	code += "\t}\n"
 	code += "}"
 
-	return
+	return startFinction + code
 }
 
-func UpdateProtoTo(strc entity.Struct,pkg string) (code string) {
+func UpdateProtoTo(strc entity.Struct, pkg string) (code string) {
 
-	code += "func UpdateProtoTo"+strc.Name+"(proto *"+pkg+".Update"+strc.Name+"Request) "+strc.Name+" {"
+	startFinction := "func UpdateProtoTo" + strc.Name + "(proto *" + pkg + ".Update" + strc.Name + "Request) " + strc.Name + " {"
+
+	variableInFunction := ""
 
 	code += "\n\treturn " + strc.Name + "{\n"
 	for _, row := range strc.Rows {
@@ -180,8 +182,8 @@ func UpdateProtoTo(strc entity.Struct,pkg string) (code string) {
 
 		switch row.Type {
 		case "*timestamp.Timestamp":
-			code = "\t" + strcase.ToLowerCamel(row.Name) + ",_ := timestamppb.New(proto." + row.Name + ")\n\n" + code
-			code += "\t\t" + row.Name + ": " + strcase.ToLowerCamel(row.Name) + ",\n"
+			//variableInFunction += "\n\t" + strcase.ToLowerCamel(row.Name) + ",_ := proto." + row.Name + ".asTime()\n\n"
+			code += "\t\t" + row.Name + ": proto." + row.Name + ".AsTime(),\n"
 		case "int32", "int64", "string", "float32", "float64":
 			code += "\t\t" + row.Name + ": proto." + row.Name + ",\n"
 		default:
@@ -198,5 +200,5 @@ func UpdateProtoTo(strc entity.Struct,pkg string) (code string) {
 	code += "\t}\n"
 	code += "}"
 
-	return
+	return startFinction + variableInFunction + code
 }

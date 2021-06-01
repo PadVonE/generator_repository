@@ -59,6 +59,9 @@ func GenerateServiceCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 func ListFilter(request entity.Struct, nameInSnake string) (code string, imports string) {
 	code = ""
 	imports = ""
+
+	usePrefixTable :=  nameInSnake + "."
+
 	for _, row := range request.Rows {
 
 		//Исключаем из фильтрации лимит и офсет
@@ -70,24 +73,24 @@ func ListFilter(request entity.Struct, nameInSnake string) (code string, imports
 		case "string":
 			code += "\n\t// TODO Проверить правильно ли работает поиск " + row.Name + "(" + strcase.ToSnake(row.Name) + ") in table " + nameInSnake + "\n"
 			code += "\tif len(strings.TrimSpace(request." + row.Name + ")) > 0 {\n" +
-				"\t\tquery = query.Where(\"(" + nameInSnake + ".id::text = ? or lower(" + nameInSnake + ".name) like ?)\", strings.TrimSpace(request." + row.Name + "), \"%\"+strings.ToLower(strings.TrimSpace(request." + row.Name + "))+\"%\")\n" +
+				"\t\tquery = query.Where(\"(" + usePrefixTable + "id::text = ? or lower(" + nameInSnake + ".name) like ?)\", strings.TrimSpace(request." + row.Name + "), \"%\"+strings.ToLower(strings.TrimSpace(request." + row.Name + "))+\"%\")\n" +
 				"\t}\n\n"
 			imports += "\t\"strings\""
 		case "int32", "int64":
-			code += "\tif request." + row.Name + " != 0 {\n" +
-				"\t\tquery = query.Where(\"" + nameInSnake + "." + strcase.ToSnake(row.Name) + "\", request." + row.Name + ")\n" +
+			code += "\tif request." + row.Name + " > 0 {\n" +
+				"\t\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " = ?\", request." + row.Name + ")\n" +
 				"\t}\n\n"
 	    case "*timestamp.Timestamp":
 			code += "\n\t// TODO Поставить правильное условие " + row.Name + "(" + strcase.ToSnake(row.Name) + ") in table " + nameInSnake + "\n"
 			code += "\tif request." + row.Name + " != nil {\n" +
-				"\t\tquery.Where(\""+ nameInSnake + "." + strcase.ToSnake(row.Name) + "= ?\", request.DateStart.AsTime())\n" +
+				"\t\tquery.Where(\""+ usePrefixTable + "" + strcase.ToSnake(row.Name) + "= ?\", request.DateStart.AsTime())\n" +
 				"\t}\n\n"
 
 		default:
 
 			if strings.Contains(row.Name, "Type") || strings.Contains(row.Name, "Status"){
-				code += "\tif request." + row.Name + " != 0 {\n" +
-					"\t\tquery = query.Where(\"" + nameInSnake + "." + strcase.ToSnake(row.Name) + "\", request." + row.Name + ")\n" +
+				code += "\tif request." + row.Name + " > 0 {\n" +
+					"\t\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " = ?\", request." + row.Name + ")\n" +
 					"\t}\n\n"
 				break
 			}

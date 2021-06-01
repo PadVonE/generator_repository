@@ -43,25 +43,25 @@ func main() {
 
 	// Генерируем файлы со структурами
 	if IsGenerateEntity {
-		usecase.GenerateEntity(packageInfo, ServiceName, listOfStruct)
+		usecase.GenerateEntity(packageInfo, ServiceName, listOfStruct,ReplaceFile)
 	}
 
 	// Генерируем файлы Миграции
 	if IsGenerateMigrationFile {
-		usecase.GenerateMigrationFile(packageInfo, ServiceName, listOfStruct)
+		usecase.GenerateMigrationFile(packageInfo, ServiceName, listOfStruct,ReplaceFile)
 	}
 
 	// Генерируем файлы реализаций методов
 	if IsGenerateServiceFile {
-		usecase.GenerateServiceFiles(packageInfo, funcList, ServiceName)
+		usecase.GenerateServiceFiles(packageInfo, funcList, ServiceName,ReplaceFile)
 	}
 
 	// Генерируем файлы тестов
 	if IsGenerateTestFile {
-		usecase.GenerateTestFiles(packageInfo, funcList, ServiceName)
+		usecase.GenerateTestFiles(packageInfo, funcList, ServiceName,ReplaceFile)
 	}
 
-	usecase.GenerateGeneralFilesIfNotExist(packageInfo, ServiceName, listOfStruct)
+	usecase.GenerateGeneralFilesIfNotExist(packageInfo, ServiceName, listOfStruct,ReplaceFile)
 
 	// Выравнивание сгенеренного кода
 	servicePath := filepath.FromSlash("./../" + ServiceName+"/")

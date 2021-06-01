@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func GenerateEntity(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct) {
+func GenerateEntity(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct, replaceFile bool) {
 
 	servicePath := filepath.FromSlash("./../" + serviceName)
 
@@ -20,36 +20,35 @@ func GenerateEntity(packageInfo entity.PackageStruct, serviceName string, listOf
 
 			createFunction := false
 			updateFunction := false
-			
+
 			// Определяем нужны ли функиции для создания и обновления даннх
 			for _, tempStruct := range listOfStruct {
-				if tempStruct.Name=="Create"+l.Name+"Request" {
+				if tempStruct.Name == "Create"+l.Name+"Request" {
 					createFunction = true
 				}
-				if tempStruct.Name=="Update"+l.Name+"Request" {
+				if tempStruct.Name == "Update"+l.Name+"Request" {
 					updateFunction = true
 				}
 			}
 
-
-
-			code, err := generators.GenerateEntity(l, packageInfo,createFunction,updateFunction)
+			code, err := generators.GenerateEntity(l, packageInfo, createFunction, updateFunction)
 			if err != nil {
 				log.Error(err)
 				continue
 			}
 
 			saveFilePath := servicePath + "/entity/" + strcase.ToSnake(l.Name) + ".go"
-
-			err = FileSave(saveFilePath, code)
-			if err == nil {
-				log.WithField("File", saveFilePath).Println("Entity created")
+			if replaceFile {
+				err = FileSave(saveFilePath, code)
+				if err == nil {
+					log.WithField("File", saveFilePath).Println("Entity created")
+				}
 			}
 		}
 	}
 }
 
-func GenerateServiceFiles(packageInfo entity.PackageStruct, protoInterface entity.ProtoInterface, serviceName string) {
+func GenerateServiceFiles(packageInfo entity.PackageStruct, protoInterface entity.ProtoInterface, serviceName string, replaceFile bool) {
 	var err error
 
 	servicePath := filepath.FromSlash("./../" + serviceName)
@@ -73,17 +72,18 @@ func GenerateServiceFiles(packageInfo entity.PackageStruct, protoInterface entit
 			log.Error(err)
 			continue
 		}
+		if replaceFile {
+			err := FileSave(saveFilePath, code)
 
-		err := FileSave(saveFilePath, code)
-
-		if err == nil {
-			log.WithField("File", saveFilePath).Println("Service file created ", strcase.ToSnake(name)+"_"+strcase.ToSnake(action)+".go")
+			if err == nil {
+				log.WithField("File", saveFilePath).Println("Service file created ", strcase.ToSnake(name)+"_"+strcase.ToSnake(action)+".go")
+			}
 		}
 
 	}
 }
 
-func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.ProtoInterface, serviceName string) {
+func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.ProtoInterface, serviceName string, replaceFile bool) {
 	var err error
 
 	servicePath := filepath.FromSlash("./../" + serviceName)
@@ -122,18 +122,19 @@ func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.P
 				log.Error(err)
 				continue
 			}
+			if replaceFile {
+				err = FileSave(saveFileTestPath, codeTest)
 
-			err = FileSave(saveFileTestPath, codeTest)
-
-			if err == nil {
-				log.WithField("File", saveFileTestPath).Println("Test file created ", strcase.ToSnake(name)+"_"+strcase.ToSnake(action)+".go")
+				if err == nil {
+					log.WithField("File", saveFileTestPath).Println("Test file created ", strcase.ToSnake(name)+"_"+strcase.ToSnake(action)+".go")
+				}
 			}
 		}
 
 	}
 }
 
-func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct) {
+func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct, replaceFile bool) {
 	servicePath := filepath.FromSlash("./../" + serviceName)
 
 	migration := ""
@@ -151,33 +152,34 @@ func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string,
 	now := time.Now()
 
 	saveFilePath := servicePath + "/migrations/" + strconv.Itoa(int(now.Unix())) + "_init.up.sql"
-
-	err := FileSave(saveFilePath, migration)
-	if err == nil {
-		log.WithField("File", saveFilePath).Println("Entity created")
+	if replaceFile {
+		err := FileSave(saveFilePath, migration)
+		if err == nil {
+			log.WithField("File", saveFilePath).Println("Entity created")
+		}
 	}
 }
 
-func GenerateGeneralFilesIfNotExist(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct) {
+func GenerateGeneralFilesIfNotExist(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct, replaceFile bool) {
 
 	type GeneralFile struct {
 		FileName string
-		Replace bool
+		Replace  bool
 	}
 
 	servicePath := filepath.FromSlash("./../" + serviceName)
 
 	listFiles := []GeneralFile{
-		{".gitignore",false},
-		{"db.go",false},
-		{"envopt.json",false},
-		{"envopt_test.json",false},
-		{"go.mod",false},
-		{"go.sum",false},
-		{"main.go",false},
-		{"server.go",false},
-		{"service/service.go",false},
-		{"service/service_test.go",true},
+		{".gitignore", false},
+		{"db.go", false},
+		{"envopt.json", false},
+		{"envopt_test.json", false},
+		{"go.mod", false},
+		{"go.sum", false},
+		{"main.go", false},
+		{"server.go", false},
+		{"service/service.go", false},
+		{"service/service_test.go", true},
 		//{"prometheus.go",false},
 
 	}
@@ -199,16 +201,17 @@ func GenerateGeneralFilesIfNotExist(packageInfo entity.PackageStruct, serviceNam
 			}
 		}
 
-
-		code, err := generators.GenerateGeneral(l.FileName, packageInfo,dbList)
+		code, err := generators.GenerateGeneral(l.FileName, packageInfo, dbList)
 		if err != nil {
 			log.Error(err)
 			continue
 		}
 
-		err = FileSave(saveFilePath, code)
-		if err == nil {
-			log.WithField("File", saveFilePath).Println("Entity created")
+		if replaceFile {
+			err = FileSave(saveFilePath, code)
+			if err == nil {
+				log.WithField("File", saveFilePath).Println("Entity created")
+			}
 		}
 
 	}

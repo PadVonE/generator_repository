@@ -28,9 +28,7 @@ func (s *Service) get{{ .Name}}(request *{{ .PackageStruct.PackageName}}.Get{{ .
 
 	query := s.DB.NewSession()
 
-	if request.Id > 0 {
-		query = query.Where("id = ?", request.Id)
-	}
+{{ .ListFilter}}
 
 	has, err := query.Get(&item)
 
