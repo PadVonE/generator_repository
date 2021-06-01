@@ -1,3 +1,4 @@
 .idea
 /tmp/
 consts.go
+generator.db
