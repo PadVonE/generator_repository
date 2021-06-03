@@ -1,16 +1,22 @@
 module generator
 
-go 1.15
+go 1.16
 
 require (
-	github.com/Microsoft/go-winio v0.4.16 // indirect
+	github.com/fontionis/envopt v1.0.0
+	github.com/getsentry/sentry-go v0.11.0
+	github.com/gin-gonic/gin v1.7.2
+	github.com/go-xorm/xorm v0.7.9
+	github.com/golang-migrate/migrate v3.5.4+incompatible
+	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/iancoleman/strcase v0.1.3
-	github.com/kevinburke/ssh_config v1.1.0 // indirect
-	github.com/sergi/go-diff v1.2.0 // indirect
+	github.com/lib/pq v1.10.2
+	github.com/mattn/go-sqlite3 v1.14.7 // indirect
 	github.com/sirupsen/logrus v1.8.1
-	github.com/xanzy/ssh-agent v0.3.0 // indirect
-	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2 // indirect
-	golang.org/x/net v0.0.0-20210331212208-0fccb6fa2b5c // indirect
-	golang.org/x/sys v0.0.0-20210331175145-43e1dd70ce54 // indirect
+	github.com/stretchr/testify v1.7.0 // indirect
+	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
+	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
+	golang.org/x/sys v0.0.0-20210514084401-e8d321eab015 // indirect
+	google.golang.org/protobuf v1.26.0 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1
 )
