@@ -19,8 +19,10 @@ func (s *Service) GitClone(ctx *gin.Context) {
 
 	repository:= "https://github.com/fontionis/proto-advertiser-repository"
 
-	clonePath := s.cloneRepository(repository)
-
+	clonePath,err := s.cloneRepository(repository)
+	if err != nil {
+		log.Println(err)
+	}
 
 	// packageInfo - Хранит информацию о названии пакета, полного пути на гите, названия для импорти,
 	// listOfStruct - список всех структур описанных в протофайлах (Название структуры,Тип структуры, Поля)

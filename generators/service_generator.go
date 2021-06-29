@@ -58,7 +58,7 @@ func GenerateServiceCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 
 func ListFilter(request entity.Struct, nameInSnake string) (code string, imports string) {
 	code = ""
-	imports = ""
+	importsSlice := []string{}
 
 	usePrefixTable :=  nameInSnake + "."
 
@@ -75,7 +75,7 @@ func ListFilter(request entity.Struct, nameInSnake string) (code string, imports
 			code += "\tif len(strings.TrimSpace(request." + row.Name + ")) > 0 {\n" +
 				"\t\tquery = query.Where(\"(" + usePrefixTable + "id::text = ? or lower(" + nameInSnake + ".name) like ?)\", strings.TrimSpace(request." + row.Name + "), \"%\"+strings.ToLower(strings.TrimSpace(request." + row.Name + "))+\"%\")\n" +
 				"\t}\n\n"
-			imports += "\t\"strings\""
+			importsSlice = append(importsSlice,"\t\"strings\"")
 		case "int32", "int64":
 			code += "\tif request." + row.Name + " > 0 {\n" +
 				"\t\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " = ?\", request." + row.Name + ")\n" +
@@ -103,5 +103,24 @@ func ListFilter(request entity.Struct, nameInSnake string) (code string, imports
 		}
 	}
 
+	imports = strings.Join(RemoveDuplicatesFromSlice(importsSlice), "")
+
 	return
+}
+func RemoveDuplicatesFromSlice(s []string) []string {
+	m := make(map[string]bool)
+	for _, item := range s {
+		if _, ok := m[item]; ok {
+			// duplicate item
+			//fmt.Println(item, "is a duplicate")
+		} else {
+			m[item] = true
+		}
+	}
+
+	var result []string
+	for item, _ := range m {
+		result = append(result, item)
+	}
+	return result
 }
