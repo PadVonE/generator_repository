@@ -1,0 +1,61 @@
+package service
+
+import (
+	"context"
+	"gateway-front-admin/models"
+	"gateway-front-admin/restapi/operations/admin_gateway_service"
+	"github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
+	"github.com/getsentry/sentry-go"
+	"github.com/go-openapi/runtime/middleware"
+	"github.com/go-openapi/strfmt"
+)
+
+func (s *Service) Create{{ .Name}}() admin_gateway_service.Create{{ .Name}}HandlerFunc {
+	return func(params admin_gateway_service.Create{{ .Name}}Params) middleware.Responder {
+		responder := admin_gateway_service.NewCreate{{ .Name}}OK()
+
+		response, err := s.create{{ .Name}}(params)
+		if err != nil {
+			sentry.CaptureException(err)
+		}
+
+		return responder.WithPayload(response)
+	}
+}
+
+func (s *Service) create{{ .Name}}(params admin_gateway_service.Create{{ .Name}}Params) (*models.Create{{ .Name}}Response, error) {
+	response := &models.Create{{ .Name}}Response{}
+	response.Status = models.StatusOK
+
+	info, ok := s.GetTokenInfo(params.HTTPRequest.Header.Get(xAuthToken))
+	if !ok {
+		response.Status = models.StatusBADCREDENTIALS
+		return response, nil
+	}
+
+	if !SliceIsIntersect(info.UserRoles, []string{roleAdmin}) {
+		response.Status = models.StatusBADCREDENTIALS
+		return response, nil
+	}
+
+	create{{ .Name}}Request := {{ .PackageStruct.PackageName}}.Create{{ .Name}}Request{
+		EditedUserId:        info.UserId,
+		Name:                params.Body.Name,
+		  // TODO Допиши параметры
+	}
+
+	item, err := s.{{ .Name}}Repository.Create{{ .Name}}(context.Background(), &create{{ .Name}}Request)
+	if err != nil {
+		response.Status = models.StatusINTERNALERROR
+		return response, err
+	}
+
+	response.Payload.Item = &models.{{ .Name}}{
+		ID:                  item.Id,
+		CreatedAt:           strfmt.DateTime(item.CreatedAt.AsTime()),
+		UpdatedAt:           strfmt.DateTime(item.UpdatedAt.AsTime()),
+		  // TODO Допиши параметры
+	}
+
+	return response, nil
+}

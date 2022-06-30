@@ -1,0 +1,47 @@
+package service
+
+import (
+	"context"
+	"github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
+	"github.com/getsentry/sentry-go"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"{{ .PackageStruct.PackageNameForImport}}/entity"
+{{ .Imports}}
+)
+
+
+func (s *Service) List{{ .Name}}(_ context.Context, request *{{ .PackageStruct.PackageName}}.List{{ .Name}}Request) (*{{ .PackageStruct.PackageName}}.List{{ .Name}}Response, error) {
+    var items []entity.{{ .Name}}
+	var total int64
+
+	query := s.DB.Model(&entity.{{ .Name}}{})
+
+{{ .ListFilter}}
+
+	//find
+	err := query.Order("id desc").Limit(int(request.Limit)).Offset(int(request.Offset)).Find(&items).Error
+	if err != nil {
+		sentry.CaptureException(err)
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
+	//count
+	if err := query.Count(&total).Error; err != nil {
+		sentry.CaptureException(err)
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
+	if total <= 0 {
+		return nil, status.Error(codes.NotFound, "no rows")
+	}
+
+	response := &{{ .PackageStruct.PackageName}}.List{{ .Name}}Response{}
+	response.Total = int32(total)
+
+	for _, item := range items {
+		response.Items = append(response.Items, entity.{{ .Name}}ToProto(&item))
+	}
+
+	return response, nil
+}

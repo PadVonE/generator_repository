@@ -1,0 +1,5 @@
+.go
+vendor
+app
+.idea
+.DS_Store

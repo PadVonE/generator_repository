@@ -1,0 +1,18 @@
+package service
+
+import (
+	"context"
+	"github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
+	"{{ .PackageStruct.PackageNameForImport}}/entity"
+	"google.golang.org/grpc/codes"
+    "google.golang.org/grpc/status"
+{{ .Imports}}
+)
+
+{{ .Functions}}
+
+func (s *SuiteTest) TestGet{{ .Name}}_byErrorNoRows() {
+	_, err := s.Service.Get{{ .Name}}(context.Background(), &{{ .PackageStruct.PackageName}}.Get{{ .Name}}Request{Id: 111111})
+	s.NotEqual(status.Code(err), codes.Internal)
+	s.Equal(status.Code(err), codes.NotFound)
+}

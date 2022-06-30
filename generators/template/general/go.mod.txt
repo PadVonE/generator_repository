@@ -1,0 +1,4 @@
+module {{ .PackageStruct.PackageNameForImport}}
+
+go 1.17
+

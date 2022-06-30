@@ -1,0 +1,22 @@
+package main
+
+import (
+	"github.com/{{ .PackageStruct.GitCompanyName}}/envopt"
+	"github.com/getsentry/sentry-go"
+	"log"
+	"{{ .PackageStruct.PackageNameForImport}}/service"
+)
+
+func main() {
+	envopt.Validate("envopt.json")
+
+	if err := sentry.Init(sentry.ClientOptions{Debug: false}); err != nil {
+		log.Printf("sentry init: %s", err)
+	}
+
+	s := &service.Service{}
+
+	s.DB = DbConnection()
+
+	startServer(s)
+}

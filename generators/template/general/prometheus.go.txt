@@ -1,0 +1,31 @@
+package main
+
+import (
+	"github.com/{{ .PackageStruct.GitCompanyName}}/envopt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"log"
+	"net/http"
+)
+
+const (
+	envPrometheusVersion        = "VERSION"
+	envPrometheusBuildData      = "BUILD_DATA"
+	envPrometheusBuildSha       = "BUILD_SHA"
+	envPrometheusMonitoringPort = "PROMETHEUS_MONITORING_PORT"
+)
+
+func initPrometheusServer() {
+	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/version", func(writer http.ResponseWriter, request *http.Request) {
+		writer.Write([]byte(envopt.GetEnv(envPrometheusVersion)))
+	})
+	http.HandleFunc("/build_data", func(writer http.ResponseWriter, request *http.Request) {
+		writer.Write([]byte(envopt.GetEnv(envPrometheusBuildData)))
+	})
+	http.HandleFunc("/build_sha", func(writer http.ResponseWriter, request *http.Request) {
+		writer.Write([]byte(envopt.GetEnv(envPrometheusBuildSha)))
+	})
+	if err := http.ListenAndServe(":"+envopt.GetEnv(envPrometheusMonitoringPort), nil); err != nil {
+		log.Println(err)
+	}
+}

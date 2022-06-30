@@ -1,0 +1,76 @@
+package service
+
+import (
+	"fmt"
+	"github.com/go-xorm/xorm"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/{{ .PackageStruct.GitCompanyName}}/envopt"
+	"github.com/stretchr/testify/suite"
+	"testing"
+	"time"
+)
+
+type SuiteTest struct {
+	suite.Suite
+	Service Service
+}
+
+func (s *SuiteTest) SetupSuite() {
+	envopt.Validate("../envopt_test.json")
+
+	var db *xorm.Engine
+	var err error
+
+	conn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		envopt.GetEnv("POSTGRES_HOST"),
+		envopt.GetEnv("POSTGRES_PORT"),
+		envopt.GetEnv("POSTGRES_USER"),
+		envopt.GetEnv("POSTGRES_PASSWORD"),
+		envopt.GetEnv("POSTGRES_DB_NAME"),
+		envopt.GetEnv("POSTGRES_SSL_MODE"),
+	)
+
+	db, err = xorm.NewEngine("postgres", conn)
+	if !s.NoError(err) {
+		return
+	}
+
+	if err := db.Ping(); !s.NoError(err) {
+		return
+	}
+
+	db.DatabaseTZ, _ = time.LoadLocation(envopt.GetEnv("TZ"))
+
+	if err = migration(db); !s.NoError(err) {
+		return
+	}
+
+	s.Service.DB = db
+}
+
+func migration(db *xorm.Engine) error {
+	driver, err := postgres.WithInstance(db.DB().DB, &postgres.Config{})
+	if err != nil {
+		return fmt.Errorf("failure migration driver %w", err)
+	}
+
+	migration, err := migrate.NewWithDatabaseInstance("file://../migrations", envopt.GetEnv("POSTGRES_DB_NAME"), driver)
+	if err != nil {
+		return fmt.Errorf("failure migration file %w", err)
+	}
+
+	if err := migration.Up(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("failure migration up %w", err)
+	}
+	return nil
+}
+
+func (s *SuiteTest) TearDownTest() {
+{{.DropTableCode}}
+}
+
+func TestRepository(t *testing.T) {
+	suite.Run(t, new(SuiteTest))
+}
