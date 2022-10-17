@@ -12,7 +12,6 @@ import (
 	"strings"
 )
 
-
 func init() {
 	// Log as JSON instead of the default ASCII formatter.
 	log.SetFormatter(&log.TextFormatter{})
@@ -43,33 +42,33 @@ func main() {
 
 	// Генерируем файлы со структурами
 	if IsGenerateEntity {
-		usecase.GenerateEntity(packageInfo, ServiceName, listOfStruct,ReplaceFile)
+		usecase.GenerateEntity(packageInfo, ServiceName, listOfStruct, ReplaceFile)
 	}
 
 	// Генерируем файлы Миграции
 	if IsGenerateMigrationFile {
-		usecase.GenerateMigrationFile(packageInfo, ServiceName, listOfStruct,ReplaceFile)
+		usecase.GenerateMigrationFile(packageInfo, ServiceName, listOfStruct, ReplaceFile)
 	}
 
 	// Генерируем файлы реализаций методов
 	if IsGenerateServiceFile {
-		usecase.GenerateServiceFiles(packageInfo, funcList, ServiceName,ReplaceFile)
+		usecase.GenerateServiceFiles(packageInfo, funcList, ServiceName, ReplaceFile)
 	}
 
 	// Генерируем файлы тестов
 	if IsGenerateTestFile {
-		usecase.GenerateTestFiles(packageInfo, funcList, ServiceName,ReplaceFile)
+		usecase.GenerateTestFiles(packageInfo, funcList, ServiceName, ReplaceFile)
 	}
 
 	// Генерируем файлы тестов
 	if IsGenerateGatewayFile {
-		usecase.GenerateGatewayFiles(packageInfo, funcList, ServiceName,ReplaceFile)
+		usecase.GenerateGatewayFiles(packageInfo, funcList, ServiceName, ReplaceFile)
 	}
 
-	usecase.GenerateGeneralFilesIfNotExist(packageInfo, ServiceName, listOfStruct,ReplaceFile)
+	usecase.GenerateGeneralFilesIfNotExist(packageInfo, ServiceName, listOfStruct, ReplaceFile)
 
 	// Выравнивание сгенеренного кода
-	servicePath := filepath.FromSlash("./../" + ServiceName+"/")
+	servicePath := filepath.FromSlash("./../" + ServiceName + "/")
 	cmd := exec.Command("gofmt", "-s", "-w", servicePath)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/2q4t-aides/envopt"
+	"github.com/{{ .PackageStruct.GitCompanyName}}/envopt"
 	"github.com/getsentry/sentry-go"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"

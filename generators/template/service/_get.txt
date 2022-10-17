@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
 	"{{ .PackageStruct.PackageNameForImport}}/entity"
+{{ .Imports}}
 )
 
 func (s *Service) Get{{ .Name}}(_ context.Context, request *{{ .PackageStruct.PackageName}}.Get{{ .Name}}Request) (*{{ .PackageStruct.PackageName}}.{{ .Name}}, error) {
@@ -16,8 +17,8 @@ func (s *Service) Get{{ .Name}}(_ context.Context, request *{{ .PackageStruct.Pa
 
 	query := s.DB.Model(&item)
 {{ .ListFilter}}
-	err := query.Take(&item, request.Id).Error
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound){
+	err := query.Take(&item).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		sentry.CaptureException(err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}

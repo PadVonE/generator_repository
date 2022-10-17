@@ -33,7 +33,6 @@ func startServer(service *service.Service) {
 
 	{{ .PackageStruct.PackageName}}.Register{{ .PackageStruct.PackageNameCamel}}ServiceServer(server, service)
 
-
 	healthService := healthcheck.NewHealthChecker()
 	grpc_health_v1.RegisterHealthServer(server, healthService)
 

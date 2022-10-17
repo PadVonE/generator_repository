@@ -8,9 +8,17 @@ import (
 )
 
 func main() {
-	envopt.Validate("envopt.json")
+    envopt.Validate("envopt.json")
 
-	if err := sentry.Init(sentry.ClientOptions{Debug: false}); err != nil {
+	sentryOptions := sentry.ClientOptions{
+		Debug: false,
+		BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
+			log.Println(hint.OriginalException.Error())
+			return event
+		},
+	}
+
+	if err := sentry.Init(sentryOptions); err != nil {
 		log.Printf("sentry init: %s", err)
 	}
 
@@ -20,3 +28,4 @@ func main() {
 
 	startServer(s)
 }
+

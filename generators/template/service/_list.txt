@@ -43,5 +43,5 @@ func (s *Service) List{{ .Name}}(_ context.Context, request *{{ .PackageStruct.P
 		response.Items = append(response.Items, entity.{{ .Name}}ToProto(&item))
 	}
 
-	return response, nil
+	return response, err
 }
