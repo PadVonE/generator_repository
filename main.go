@@ -106,7 +106,7 @@ func ParseInfoFromProto(clonePath string) (packageInfo entity.PackageStruct, lis
 	for _, file := range files {
 
 		fileAddress := clonePath + "/" + file.Name()
-		if strings.HasSuffix(file.Name(), "repository.pb.go") {
+		if strings.HasSuffix(file.Name(), "repository.pb.go") || strings.HasSuffix(file.Name(), "repository_grpc.pb.go") {
 			funcFile = fileAddress
 			continue
 		}
@@ -135,7 +135,6 @@ func ParseInfoFromProto(clonePath string) (packageInfo entity.PackageStruct, lis
 		panic(err)
 	}
 	source := string(dat)
-
 	funcList = usecase.ParseProtobufFunc(source)
 
 	return

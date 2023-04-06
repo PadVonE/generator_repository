@@ -1,6 +1,8 @@
 [
   {"key": "TZ", "critical": true, "default": "UTC"},
 
+  {"key": "DEBUG", "critical": true, "default": "DEV"},
+
   {"key": "POSTGRES_HOST", "critical": true, "default": "{{ .PackageStruct.PackageNameForImport}}-postgres"},
   {"key": "POSTGRES_PORT", "critical": true, "default": "5432"},
   {"key": "POSTGRES_DB_NAME", "critical": true, "default": ""},

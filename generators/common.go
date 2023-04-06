@@ -10,17 +10,20 @@ import (
 )
 
 type Data struct {
-	Name           string
-	StructRows     string
-	NameInSnake    string
-	NameInCamel    string
-	RepositoryName string
-	ToProto        string
-	CreateProtoTo  string
-	UpdateProtoTo  string
-	ListFilter     string
-	Imports        string
-	PackageStruct  entity.PackageStruct
+	Name                    string
+	StructRows              string
+	NameInSnake             string
+	NameInCamel             string
+	RepositoryName          string
+	ToProto                 string
+	CreateProtoTo           string
+	UpdateProtoTo           string
+	ListFilter              string
+	Imports                 string
+	GatewayVariables        string
+	gatewayVariablesRequest string
+	GatewayFilter           string
+	PackageStruct           entity.PackageStruct
 }
 
 type DataGeneralGenerator struct {
@@ -51,9 +54,9 @@ func generateEqualList(s1 string, s2 string, p entity.Struct) (code string) {
 
 	code = ""
 	for _, element := range p.Rows {
-		if 	element.Name=="CreatedAt" ||
-			element.Name=="UpdatedAt" ||
-			element.Name=="PublicDate" {
+		if element.Name == "CreatedAt" ||
+			element.Name == "UpdatedAt" ||
+			element.Name == "PublicDate" {
 			continue
 		}
 		code += "\ts.Equal(" + s1 + "." + element.Name + ", " + s2 + "." + element.Name + ")"
@@ -92,7 +95,7 @@ func generateRowRequest(elementName string, elementType string, inc int) (codeEn
 		imports += "\t\"github.com/google/uuid\"\n"
 		codeEntity += "\t\t" + elementName + ":[]byte(uuid.New().String()),\n"
 	default:
-		if strings.Contains(elementType, "Type") || strings.Contains(elementType, "Status"){
+		if strings.Contains(elementType, "Type") || strings.Contains(elementType, "Status") {
 			codeEntity += "\t\t" + elementName + ":" + strconv.Itoa(inc+1) + ",\n"
 			break
 		}

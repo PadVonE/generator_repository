@@ -116,12 +116,15 @@ func ParseProtobufFunc(source string) (protoInterface entity.ProtoInterface) {
 
 							// Собираем список параметров ответа
 
-							for _, item := range tm.Results.List {
-								if ti, ok := item.Type.(*ast.StarExpr); ok {
-									if d, ok := ti.X.(*ast.Ident); ok {
-										result = d.Name
-										break
-										//results = append(results, d.Name)
+							if tm.Results != nil {
+
+								for _, item := range tm.Results.List {
+									if ti, ok := item.Type.(*ast.StarExpr); ok {
+										if d, ok := ti.X.(*ast.Ident); ok {
+											result = d.Name
+											break
+											//results = append(results, d.Name)
+										}
 									}
 								}
 							}
@@ -138,18 +141,18 @@ func ParseProtobufFunc(source string) (protoInterface entity.ProtoInterface) {
 								}
 							}
 
-							basic := strings.Replace(param,"Request","",-1)
-							basic = strings.Replace(basic,"Create","",-1)
-							basic = strings.Replace(basic,"Update","",-1)
-							basic = strings.Replace(basic,"Delete","",-1)
-							basic = strings.Replace(basic,"Get","",-1)
-							basic = strings.Replace(basic,"List","",-1)
+							basic := strings.Replace(param, "Request", "", -1)
+							basic = strings.Replace(basic, "Create", "", -1)
+							basic = strings.Replace(basic, "Update", "", -1)
+							basic = strings.Replace(basic, "Delete", "", -1)
+							basic = strings.Replace(basic, "Get", "", -1)
+							basic = strings.Replace(basic, "List", "", -1)
 
 							methods = append(methods, entity.ProtoInterfaceMethod{
 								NameMethod: m.Names[0].Name,
 								Request:    param,
 								Response:   result,
-								Basic:   	basic,
+								Basic:      basic,
 							})
 						}
 

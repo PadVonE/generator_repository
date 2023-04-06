@@ -7,15 +7,21 @@ import (
 	"{{ .PackageStruct.PackageNameForImport}}/service"
 )
 
-func main() {
-    envopt.Validate("envopt.json")
+const (
+	DebugEnv = "DEBUG"
+	DebugDev = "DEV"
+)
 
-	sentryOptions := sentry.ClientOptions{
-		Debug: false,
-		BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
+func main() {
+	envopt.Validate("envopt.json")
+
+	sentryOptions := sentry.ClientOptions{}
+
+	if envopt.GetEnv(DebugEnv) == DebugDev {
+		sentryOptions.BeforeSend = func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
 			log.Println(hint.OriginalException.Error())
 			return event
-		},
+		}
 	}
 
 	if err := sentry.Init(sentryOptions); err != nil {

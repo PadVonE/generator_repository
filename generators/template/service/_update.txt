@@ -10,8 +10,8 @@ import (
 	"{{ .PackageStruct.PackageNameForImport}}/entity"
 )
 
-func (s *Service) UpdateUser(_ context.Context, request *user_repository.UpdateUserRequest) (*user_repository.User, error) {
-	item := entity.UpdateUserProtoTo{{ .Name}}(request)
+func (s *Service) Update{{ .Name}}(_ context.Context, request *{{ .PackageStruct.PackageName}}.Update{{ .Name}}Request) (*{{ .PackageStruct.PackageName}}.{{ .Name}}, error) {
+	item := entity.UpdateProtoTo{{ .Name}}(request)
 
 	if item.Id <= 0 {
 		sentry.CaptureException(gorm.ErrMissingWhereClause)
