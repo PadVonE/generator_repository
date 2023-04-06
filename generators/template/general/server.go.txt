@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/{{ .PackageStruct.GitCompanyName}}/envopt"
     "github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
-	"go.elastic.co/apm/module/apmgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -29,7 +28,7 @@ func startServer(service *service.Service) {
 		return
 	}
 
-    server := grpc.NewServer(grpc.ChainUnaryInterceptor(apmgrpc.NewUnaryServerInterceptor(), authInterceptor))
+	server := grpc.NewServer(grpc.UnaryInterceptor(authInterceptor))
 
 	{{ .PackageStruct.PackageName}}.Register{{ .PackageStruct.PackageNameCamel}}ServiceServer(server, service)
 
