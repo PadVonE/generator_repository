@@ -8,10 +8,12 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
 func GenerateEntity(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct, replaceFile bool) {
+	log.Println("\033[35m", "\n\nEntity files", "\033[0m")
 
 	servicePath := filepath.FromSlash("./../" + serviceName)
 
@@ -49,6 +51,8 @@ func GenerateEntity(packageInfo entity.PackageStruct, serviceName string, listOf
 }
 
 func GenerateServiceFiles(packageInfo entity.PackageStruct, protoInterface entity.ProtoInterface, serviceName string, replaceFile bool) {
+	log.Println("\033[35m", "\n\nService files", "\033[0m")
+
 	var err error
 
 	servicePath := filepath.FromSlash("./../" + serviceName)
@@ -84,6 +88,8 @@ func GenerateServiceFiles(packageInfo entity.PackageStruct, protoInterface entit
 }
 
 func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.ProtoInterface, serviceName string, replaceFile bool) {
+	log.Println("\033[35m", "\n\nTEST files", "\033[0m")
+
 	var err error
 
 	servicePath := filepath.FromSlash("./../" + serviceName)
@@ -135,10 +141,12 @@ func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.P
 }
 
 func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct, replaceFile bool) {
-	servicePath := filepath.FromSlash("./../" + serviceName)
+	log.Println("\033[35m", "\n\nMigration file", "\033[0m")
 
+	servicePath := filepath.FromSlash("./../" + serviceName)
+	migration := ""
 	//Таблица для отслеживания изменений
-	migration := "create table if not exists edited_log (\n" +
+	migrationEditLog := "create table if not exists edited_log (\n" +
 		"    id serial not null constraint edited_log_event_pkey primary key,\n" +
 		"    created_at timestamp not null default CURRENT_TIMESTAMP,\n" +
 		"    action text not null,\n" +
@@ -148,10 +156,10 @@ func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string,
 		"    json_string json not null\n);\n\n"
 
 	// Инлекс
-	migration += "create index if not exists edited_log_table_name_table_id_idx on edited_log (table_name, table_id);\n\n"
+	migrationEditLog += "create index if not exists edited_log_table_name_table_id_idx on edited_log (table_name, table_id);\n\n"
 
 	// Тригер
-	migration += "create or replace function edited_user_id() returns trigger\n" +
+	migrationEditLog += "create or replace function edited_user_id() returns trigger\n" +
 		"    language plpgsql\nas\n$$\nbegin\n" +
 		"    if new.edited_user_id > 0 then\n" +
 		"        insert into \"edited_log\" (\"action\", \"table_name\", \"table_id\", \"edited_user_id\", \"json_string\")\n" +
@@ -159,28 +167,61 @@ func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string,
 		"    end if;\n" +
 		"    return new;\nend;\n$$;\n\n"
 
+	hasEditedLog := false
 	for _, l := range listOfStruct {
 		if l.Type == entity.TypeMain {
-			code, err := generators.GenerateMigration(l, packageInfo)
+			code, addEditLogTrigger, err := generators.GenerateMigration(l)
 			if err != nil {
 				log.Error(err)
 				continue
+			}
+
+			if addEditLogTrigger == true {
+				hasEditedLog = true
 			}
 			migration += code
 		}
 	}
 	now := time.Now()
 
-	saveFilePath := servicePath + "/migrations/" + strconv.Itoa(int(now.Unix())) + "_init.up.sql"
+	if hasEditedLog {
+		migration = migrationEditLog + migration
+	}
+
+	saveFilePath := servicePath + "/migrations/"
+	saveFileName := strconv.Itoa(int(now.Unix())) + "_init.up.sql"
+
+	// Проверим есть ли файл миграции
+
+	entries, err := os.ReadDir(saveFilePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	migrationIsset := false
+	for _, e := range entries {
+		log.Println(e.Name())
+		contain := strings.Contains(e.Name(), "_init")
+		if contain {
+			migrationIsset = true
+			saveFileName = e.Name()
+		}
+	}
+
+	if migrationIsset {
+		log.Warn("Migration isset in path " + saveFilePath + saveFileName)
+	}
+
 	if replaceFile {
-		err := FileSave(saveFilePath, migration)
+		err := FileSave(saveFilePath+saveFileName, migration)
 		if err == nil {
-			log.WithField("File", saveFilePath).Println("Migration created")
+			log.WithField("File", saveFilePath+saveFileName).Println("Migration created")
 		}
 	}
 }
 
 func GenerateGeneralFilesIfNotExist(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct, replaceFile bool) {
+	log.Println("\033[35m", "\n\nGeneral Files file", "\033[0m")
 
 	type GeneralFile struct {
 		FileName string
@@ -237,6 +278,8 @@ func GenerateGeneralFilesIfNotExist(packageInfo entity.PackageStruct, serviceNam
 }
 
 func GenerateGatewayFiles(packageInfo entity.PackageStruct, protoInterface entity.ProtoInterface, serviceName string, replaceFile bool) {
+	log.Println("\033[35m", "\n\nGateway file", "\033[0m")
+
 	var err error
 
 	servicePath := filepath.FromSlash("./../gateway-front-admin")
