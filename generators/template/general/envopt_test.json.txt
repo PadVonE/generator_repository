@@ -1,6 +1,9 @@
 [
   {"key": "TZ", "critical": true, "default": "UTC"},
 
+  {"key": "GRPC_PORT", "critical": true, "default": "9111"},
+  {"key": "GRPC_TOKEN", "critical": true, "default": ""},
+
   {"key": "DEBUG", "critical": true, "default": "DEV"},
 
   {"key": "POSTGRES_HOST", "critical": true, "default": "{{ .PackageStruct.PackageNameForImport}}-postgres"},

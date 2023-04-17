@@ -16,6 +16,7 @@ func (s *Service) Get{{ .Name}}(_ context.Context, request *{{ .PackageStruct.Pa
 	item := entity.{{ .Name}}{}
 
 	query := s.DB.Model(&item)
+	
 {{ .ListFilter}}
 	err := query.Take(&item).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {

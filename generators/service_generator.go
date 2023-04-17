@@ -5,7 +5,6 @@ import (
 	"generator/entity"
 	"github.com/iancoleman/strcase"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,7 +22,7 @@ func GenerateServiceCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 		path = filepath.Join(wd, path)
 	}
 
-	dat, err := ioutil.ReadFile(path)
+	dat, err := os.ReadFile(path)
 	if err != nil {
 		log.Println(err)
 		return
@@ -34,8 +33,7 @@ func GenerateServiceCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 
 	name, _ := strc.NameInterface()
 
-
-	listFilter,imports := ListFilter(strc.RequestStruct, strcase.ToSnake(name))
+	listFilter, imports := ListFilter(strc.RequestStruct, strcase.ToSnake(name))
 	data := Data{
 		Name:          name,
 		NameInSnake:   strcase.ToSnake(name),
@@ -43,7 +41,7 @@ func GenerateServiceCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 		PackageStruct: packageStruct,
 
 		ListFilter: listFilter,
-		Imports: imports,
+		Imports:    imports,
 	}
 
 	var tpl bytes.Buffer
@@ -62,7 +60,7 @@ func ListFilter(request entity.Struct, nameInSnake string) (code string, imports
 
 	countImports := map[string]int{}
 	//usePrefixTable :=  nameInSnake + "."
-	usePrefixTable :=  ""
+	usePrefixTable := ""
 
 	for _, row := range request.Rows {
 
@@ -73,64 +71,93 @@ func ListFilter(request entity.Struct, nameInSnake string) (code string, imports
 
 		switch row.Type {
 		case "string":
-			code += "\n\t// TODO Проверить правильно ли работает поиск " + row.Name + "(" + strcase.ToSnake(row.Name) + ") in table " + nameInSnake + "\n"
-			code += "\tif len(strings.TrimSpace(request." + row.Name + ")) > 0 {\n" +
-				"\t\tquery = query.Where(\""+ usePrefixTable + "" + strcase.ToSnake(row.Name) + " ilike ?\", \"%\"+request." + row.Name + "+\"%\")\n" +
-				"\t}\n\n"
-			if countImports["string"]==0 {
+
+			if countImports["string"] == 0 {
 				imports += "\t\"strings\""
 			}
 			countImports["string"]++
-		case "int32", "int64","float32","float64":
+
+			if row.Name == "Uuid" {
+				code += "\tif len(request." + row.Name + ") > 0 {\n" +
+					"\t\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " = ?\", request." + row.Name + ")\n" +
+					"\t}\n\n"
+				break
+			}
+
+			code += "\n\t// TODO Проверить правильно ли работает поиск " + row.Name + "(" + strcase.ToSnake(row.Name) + ") in table " + nameInSnake + "\n"
+
+			code += "\tif len(strings.TrimSpace(request." + row.Name + ")) > 0 {\n" +
+				"\t\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " ilike ?\", \"%\"+request." + row.Name + "+\"%\")\n" +
+				"\t}\n\n"
+			if countImports["string"] == 0 {
+				imports += "\t\"strings\""
+			}
+			countImports["string"]++
+		case "int32", "int64", "float32", "float64":
 			code += "\tif request." + row.Name + " > 0 {\n" +
 				"\t\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " = ?\", request." + row.Name + ")\n" +
 				"\t}\n\n"
 		case "[]int32":
 			code += "\tif len(request." + row.Name + ") > 0 {\n" +
-				"\t\tquery = query.Where(\""+ usePrefixTable + "" + strcase.ToSnake(row.Name) +  " IN ?\", request." + row.Name + ")\n" +
+				"\t\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " IN ?\", request." + row.Name + ")\n" +
 				"\t}\n\n"
 		case "[]string":
 			code += "\tif len(request." + row.Name + ") > 0 {\n" +
-				"\t\tquery = query.Where(\""+ usePrefixTable + "" + strcase.ToSnake(row.Name) +  " IN ?\", request." + row.Name + ")\n" +
+				"\t\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " IN ?\", request." + row.Name + ")\n" +
 				"\t}\n\n"
 		case "bool":
-			code += "\tquery = query.Where(\""+ usePrefixTable + "" + strcase.ToSnake(row.Name) +  " = ?\", request." + row.Name + ")\n" +
+			code += "\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " = ?\", request." + row.Name + ")\n" +
 				"\n\n"
-	    case "*timestamp.Timestamp":
-	    case "*timestamppb.Timestamp":
+		case "[]byte":
+			code += "// TODO: Настал то час когда нужно реализовать поиск фильтр по байтам" +
+				"\n\n"
+		case "*timestamp.Timestamp":
+		case "*timestamppb.Timestamp":
 			code += "\n\t// TODO Поставить правильное условие " + row.Name + "(" + strcase.ToSnake(row.Name) + ") in table " + nameInSnake + "\n"
 
-			if row.Name== "DateStart"{
+			if row.Name == "DateStart" {
 				code += "\tif request." + row.Name + " != nil {\n" +
-					"\t\tquery.Where(\""+ usePrefixTable + "" + strcase.ToSnake(row.Name) + " >= ?\", request."+row.Name+".AsTime())\n" +
+					"\t\tquery.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " >= ?\", request." + row.Name + ".AsTime())\n" +
 					"\t}\n\n"
 				break
 			}
-			if row.Name== "DateEnd"{
+			if row.Name == "DateEnd" {
 				code += "\tif request." + row.Name + " != nil {\n" +
-					"\t\tquery.Where(\""+ usePrefixTable + "" + strcase.ToSnake(row.Name) + " <= ?\", request."+row.Name+".AsTime())\n" +
+					"\t\tquery.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " <= ?\", request." + row.Name + ".AsTime())\n" +
+					"\t}\n\n"
+				break
+			}
+
+			if row.Name == "CreatedStart" {
+				code += "\tif request." + row.Name + " != nil {\n" +
+					"\t\tquery.Where(\"" + usePrefixTable + "created_at >= ?\", request." + row.Name + ".AsTime())\n" +
+					"\t}\n\n"
+				break
+			}
+			if row.Name == "CreatedEnd" {
+				code += "\tif request." + row.Name + " != nil {\n" +
+					"\t\tquery.Where(\"" + usePrefixTable + "created_at <= ?\", request." + row.Name + ".AsTime())\n" +
 					"\t}\n\n"
 				break
 			}
 
 			code += "\tif request." + row.Name + " != nil {\n" +
-				"\t\tquery.Where(\""+ usePrefixTable + "" + strcase.ToSnake(row.Name) + " = ?\", request."+row.Name+".AsTime())\n" +
+				"\t\tquery.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " = ?\", request." + row.Name + ".AsTime())\n" +
 				"\t}\n\n"
 
 		default:
 
-			if strings.Contains(row.Name, "Type") || strings.Contains(row.Name, "Status"){
+			if strings.Contains(row.Name, "Type") || strings.Contains(row.Name, "Status") {
 				code += "\tif request." + row.Name + " > 0 {\n" +
 					"\t\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " = ?\", request." + row.Name + ")\n" +
 					"\t}\n\n"
 				break
 			}
 
-
 			code += "\n\n"
 			code += "\t// TODO not implemented " + row.Name + "(" + strcase.ToSnake(row.Name) + ") in table " + nameInSnake
 			code += "\n\n"
-			log.Warn("Type: " + row.Name  + "  " + row.Type + " not implemented (Generate Service ListFilter)")
+			log.Warn("Type: " + row.Name + "  " + row.Type + " not implemented (Generate Service ListFilter)")
 		}
 	}
 

@@ -146,7 +146,7 @@ func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string,
 	servicePath := filepath.FromSlash("./../" + serviceName)
 	migration := ""
 	//Таблица для отслеживания изменений
-	migrationEditLog := "create table if not exists edited_log (\n" +
+	migrationEditLog := "create table if not exists edited_log(\n" +
 		"    id serial not null constraint edited_log_event_pkey primary key,\n" +
 		"    created_at timestamp not null default CURRENT_TIMESTAMP,\n" +
 		"    action text not null,\n" +
@@ -220,7 +220,7 @@ func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string,
 	}
 }
 
-func GenerateGeneralFilesIfNotExist(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct, replaceFile bool) {
+func GenerateGeneralFilesIfNotExist(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct, isGenerateTestFile bool, replaceFile bool) {
 	log.Println("\033[35m", "\n\nGeneral Files file", "\033[0m")
 
 	type GeneralFile struct {
@@ -245,6 +245,10 @@ func GenerateGeneralFilesIfNotExist(packageInfo entity.PackageStruct, serviceNam
 		{"healthcheck/healthcheck.go", false},
 	}
 
+	if isGenerateTestFile {
+		listFiles = append(listFiles, GeneralFile{"service/service_test.go", true})
+		listFiles = append(listFiles, GeneralFile{"envopt_test.json", false})
+	}
 	dbList := []string{}
 	for _, l := range listOfStruct {
 		if l.Type == entity.TypeMain {

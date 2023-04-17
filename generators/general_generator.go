@@ -4,14 +4,13 @@ import (
 	"bytes"
 	"generator/entity"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 )
 
-func GenerateGeneral(file string, packageStruct entity.PackageStruct,tableNames []string) (code string, err error) {
+func GenerateGeneral(file string, packageStruct entity.PackageStruct, tableNames []string) (code string, err error) {
 
 	path := filepath.FromSlash("./generators/template/general/" + strings.ToLower(file) + ".txt")
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
@@ -22,7 +21,7 @@ func GenerateGeneral(file string, packageStruct entity.PackageStruct,tableNames 
 		path = filepath.Join(wd, path)
 	}
 
-	dat, err := ioutil.ReadFile(path)
+	dat, err := os.ReadFile(path)
 	if err != nil {
 		log.Println(err)
 		return
@@ -46,17 +45,11 @@ func GenerateGeneral(file string, packageStruct entity.PackageStruct,tableNames 
 	return
 }
 
-
-
 func DropTableCode(tableNames []string) (code string) {
 	code = ""
 
-	for index, table := range tableNames {
-		if index==0 {
-			code += "\t_, err := s.Service.DB.Exec(\"DELETE FROM "+table+"\")\n\ts.NoError(err)\n\n"
-		}
-
-		code += "\t_, err = s.Service.DB.Exec(\"DELETE FROM "+table+"\")\n\ts.NoError(err)\n\n"
+	for _, table := range tableNames {
+		code += "\ts.Service.DB.Exec(\"DELETE FROM " + table + "\")\n"
 	}
 	return
 }

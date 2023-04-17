@@ -100,6 +100,8 @@ func generateRowRequest(elementName string, elementType string, inc int) (codeEn
 			break
 		}
 
+		codeEntity += "\t\t" + elementName + ":" + strconv.Itoa(inc+1) + ",\n"
+
 		log.Warn("Type: " + elementType + " not implemented (generateRowRequest)")
 
 	}
