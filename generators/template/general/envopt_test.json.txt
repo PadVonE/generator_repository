@@ -2,7 +2,7 @@
   {"key": "TZ", "critical": true, "default": "UTC"},
 
   {"key": "GRPC_PORT", "critical": true, "default": "9111"},
-  {"key": "GRPC_TOKEN", "critical": true, "default": ""},
+  {"key": "GRPC_TOKEN", "critical": true, "default": "TEST_GRPC_TOKEN"},
 
   {"key": "DEBUG", "critical": true, "default": "DEV"},
 

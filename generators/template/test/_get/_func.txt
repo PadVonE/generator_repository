@@ -18,7 +18,7 @@ func (s *SuiteTest) TestGet{{ .Name}}_by{{ .FilterBy}}() {
 	if !s.NoError(err) {
 		return
 	}
-	content := entity.CardToProto(contents[1])
+	content := entity.{{ .Name}}ToProto(contents[1])
 
 {{.TestList2}}
 }

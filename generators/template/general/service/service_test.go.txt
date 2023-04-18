@@ -69,7 +69,7 @@ func migration(db *gorm.DB) error {
 		return fmt.Errorf("failure migration driver %w", err)
 	}
 
-	migration, err := migrate.NewWithDatabaseInstance("file://migrations", envopt.GetEnv("POSTGRES_DB_NAME"), driver)
+	migration, err := migrate.NewWithDatabaseInstance("file://../migrations", envopt.GetEnv("POSTGRES_DB_NAME"), driver)
 	if err != nil {
 		return fmt.Errorf("failure migration file %w", err)
 	}
