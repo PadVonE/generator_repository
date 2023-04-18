@@ -65,7 +65,7 @@ func GenerateTestGetCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 			Imports:        imports,
 			PackageStruct:  packageStruct,
 			FinishedStruct: listRequestElement,
-			TestList2:      generateEqualList("contents[1]", "response", strc.ResponseStruct),
+			TestList2:      generateEqualList("content", "response", strc.ResponseStruct),
 		}
 
 		var funcTpl bytes.Buffer

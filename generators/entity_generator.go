@@ -30,11 +30,7 @@ func GenerateEntity(strc entity.Struct, packageStruct entity.PackageStruct, crea
 	source := string(dat)
 
 	t := template.Must(template.New("const-list").Parse(source))
-	rows := ""
-
-	for _, s := range strc.Rows {
-		rows += generateRow(s)
-	}
+	rows, imports := generateRow(strc)
 
 	createProtoTo := ""
 	updateProtoTo := ""
@@ -54,6 +50,7 @@ func GenerateEntity(strc entity.Struct, packageStruct entity.PackageStruct, crea
 		CreateProtoTo: createProtoTo,
 		UpdateProtoTo: updateProtoTo,
 		PackageStruct: packageStruct,
+		Imports:       imports,
 	}
 
 	var tpl bytes.Buffer
@@ -66,35 +63,46 @@ func GenerateEntity(strc entity.Struct, packageStruct entity.PackageStruct, crea
 	return
 }
 
-func generateRow(field entity.StructField) string {
+func generateRow(row entity.Struct) (code string, imports string) {
 	tags := ""
-	fType := field.Type
+	code = ""
+	imports = ""
+	countImports := map[string]int{}
 
-	switch field.Name {
-	case "Id":
-		tags = ""
-	case "CreatedAt":
-		tags = "`gorm:\"->;<-:create\"`"
-	case "UpdatedAt":
-		tags = ""
+	for _, field := range row.Rows {
 
-	}
-	//	GeoCodes            pq.StringArray `gorm:"type:char(2)[]"`
-	switch field.Type {
-	case "*timestamp.Timestamp":
-	case "*timestamppb.Timestamp":
-		fType = "time.Time"
-	case "[]string":
-		fType = "pq.StringArray"
-		tags = "`gorm:\"type:varchar[]\"`"
-	default:
-		if strings.Contains(field.Type, "Type") || strings.Contains(field.Type, "Status") {
-			fType = "int32"
+		fType := field.Type
+
+		switch field.Name {
+		case "Id":
+			tags = ""
+		case "CreatedAt":
+			tags = "`gorm:\"->;<-:create\"`"
+		case "UpdatedAt":
+			tags = ""
+
 		}
+		//	GeoCodes            pq.StringArray `gorm:"type:char(2)[]"`
+		switch field.Type {
+		case "*timestamp.Timestamp":
+		case "*timestamppb.Timestamp":
+			fType = "time.Time"
+		case "[]string":
+			if countImports["[]string"] == 0 {
+				imports += "\t\"github.com/lib/pq\""
+			}
+			countImports["[]string"]++
+
+			fType = "pq.StringArray"
+			tags = "`gorm:\"type:varchar[]\"`"
+		default:
+			if strings.Contains(field.Type, "Type") || strings.Contains(field.Type, "Status") {
+				fType = "int32"
+			}
+		}
+		code += "\t" + field.Name + " " + fType + " " + tags + "\n"
 	}
-
-	return "\t" + field.Name + " " + fType + " " + tags + "\n"
-
+	return
 }
 
 func ToProto(strc entity.Struct, repositoryName string) (code string) {

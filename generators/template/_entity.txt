@@ -3,6 +3,7 @@ package entity
 import (
 	"github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
 	"google.golang.org/protobuf/types/known/timestamppb"
+{{ .Imports}}
 	"time"
 )
 

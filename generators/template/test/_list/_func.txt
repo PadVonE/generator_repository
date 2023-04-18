@@ -3,11 +3,11 @@ func (s *SuiteTest) TestList{{ .Name}}_by{{ .FilterBy}}() {
 {{ .FinishedStruct}}
 	}
 
-	for _, kpi := range contents {
-		_, err := s.Service.DB.Insert(kpi)
-		if !s.NoError(err) {
-			return
-		}
+	for _, element := range contents {
+		err := s.Service.DB.Create(&element).Error
+        if !s.NoError(err) {
+            return
+        }
 	}
 
 {{ .RealisationTest}}

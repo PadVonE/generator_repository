@@ -93,12 +93,12 @@ func generateTestRowRequest(elementName string, elementType string, inc int, isP
 		if isProto {
 			imports += "\t\"time\"\n"
 			imports += "\t\"google.golang.org/protobuf/types/known/timestamppb\"\n"
-			codeEntity += "\t\t" + elementName + ":timestamppb.New(time.Now()),\n"
+			codeEntity += "\t\t" + elementName + ":timestamppb.New(time.Now().UTC()),\n"
 			break
 		}
 
 		imports += "\t\"time\"\n"
-		codeEntity += "\t\t" + elementName + ":time.Now(),\n"
+		codeEntity += "\t\t" + elementName + ":time.Now().UTC(),\n"
 
 	case "[]byte":
 		imports += "\t\"github.com/google/uuid\"\n"

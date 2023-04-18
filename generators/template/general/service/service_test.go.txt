@@ -1,15 +1,18 @@
 package service
 
 import (
-	"fmt"
-	"gorm.io/gorm"
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/{{ .PackageStruct.GitCompanyName}}/envopt"
-	"github.com/stretchr/testify/suite"
-	"testing"
-	"time"
+    "fmt"
+    "github.com/{{ .PackageStruct.GitCompanyName}}/envopt"
+    "github.com/getsentry/sentry-go"
+    "github.com/golang-migrate/migrate/v4"
+    "github.com/golang-migrate/migrate/v4/database/postgres"
+    _ "github.com/golang-migrate/migrate/v4/source/file"
+    "github.com/stretchr/testify/suite"
+    gp "gorm.io/driver/postgres"
+    "gorm.io/gorm"
+	"gorm.io/gorm/logger"
+    "testing"
+    "time"
 )
 
 type SuiteTest struct {
@@ -34,7 +37,9 @@ func (s *SuiteTest) SetupSuite() {
             envopt.GetEnv("TZ"),
         )
 
-        config := &gorm.Config{}
+        config := &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Info),
+        }
 
         db, err = gorm.Open(gp.Open(dsn), config)
         if err != nil {

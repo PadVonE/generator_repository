@@ -74,11 +74,17 @@ func GenerateTestListCode(strc entity.ProtoInterfaceMethod, packageStruct entity
 			case "Search":
 				realisation = testByLimit(packageStruct, strc.BasicStruct, name)
 			default:
-				log.Println("List generator: not implemented test on field and type", rs.Name, rs.Type)
+				log.Warn("Type: " + rs.Type + "  " + rs.Name + " not implemented (Generate Service TEST List)")
 				realisation = testTemplate(packageStruct, strc.BasicStruct, name, rs.Name)
 			}
 		default:
+			if strings.Contains(rs.Type, "Type") || strings.Contains(rs.Type, "Status") {
+				realisation = testByStatus(packageStruct, strc.BasicStruct, name, rs.Name)
+				break
+			}
+
 			realisation = testTemplate(packageStruct, strc.BasicStruct, name, rs.Name)
+			log.Warn("Type: " + rs.Type + "  " + rs.Name + " not implemented (Generate Service TEST List)")
 		}
 
 		data := DataTest{
@@ -160,10 +166,15 @@ func testByLimit(packageStruct entity.PackageStruct, p entity.Struct, name strin
 	code += "\tif !s.Equal(2, len(response.Items)) {	return }\n"
 	code += "\n\n"
 
-	code += generateEqualList("contents[2]", "response.Items[0]", p)
+	code += "content := entity." + name + "ToProto(contents[2])"
 	code += "\n\n"
 
-	code += generateEqualList("contents[1]", "response.Items[1]", p)
+	code += generateEqualList("content", "response.Items[0]", p)
+	code += "\n\n"
+	code += "content = entity." + name + "ToProto(contents[1])"
+	code += "\n\n"
+
+	code += generateEqualList("content", "response.Items[1]", p)
 
 	return
 
@@ -181,10 +192,14 @@ func testByOffset(packageStruct entity.PackageStruct, p entity.Struct, name stri
 	code += "\tif !s.Equal(int32(3), response.Total) {	return }\n"
 	code += "\tif !s.Equal(2, len(response.Items)) {	return }\n"
 	code += "\n\n"
-
-	code += generateEqualList("contents[1]", "response.Items[0]", p)
+	code += "content := entity." + name + "ToProto(contents[1])"
 	code += "\n\n"
-	code += generateEqualList("contents[0]", "response.Items[1]", p)
+
+	code += generateEqualList("content", "response.Items[0]", p)
+	code += "\n\n"
+	code += "content = entity." + name + "ToProto(contents[0])"
+	code += "\n\n"
+	code += generateEqualList("content", "response.Items[1]", p)
 
 	return
 
@@ -194,14 +209,36 @@ func testByOtherInt(packageStruct entity.PackageStruct, p entity.Struct, name st
 
 	code += "\tlist" + name + "Request := &" + packageStruct.PackageName + ".List" + name + "Request{\n"
 	code += "\t\t" + rowName + ": contents[1]." + rowName + ",\n"
+	code += "\t\tLimit: 1,\n"
 	code += "\t}\n"
 
 	code += "\tresponse, err := s.Service.List" + name + "(context.Background(), list" + name + "Request)\n"
 	code += "\tif !s.NoError(err) {	return }\n"
 	code += "\tif !s.Equal(1, len(response.Items)) {	return }\n"
 	code += "\n\n"
+	code += "content := entity." + name + "ToProto(contents[1])"
+	code += "\n\n"
 
-	code += generateEqualList("contents[1]", "response.Items[0]", p)
+	code += generateEqualList("content", "response.Items[0]", p)
+
+	return
+}
+
+func testByStatus(packageStruct entity.PackageStruct, p entity.Struct, name string, rowName string) (code string) {
+
+	code += "\tlist" + name + "Request := &" + packageStruct.PackageName + ".List" + name + "Request{\n"
+	code += "\t\t" + rowName + ": " + packageStruct.PackageName + "." + p.Name + rowName + "(contents[1]." + rowName + "),\n"
+	code += "\t\tLimit: 2,\n"
+	code += "\t}\n"
+
+	code += "\tresponse, err := s.Service.List" + name + "(context.Background(), list" + name + "Request)\n"
+	code += "\tif !s.NoError(err) {	return }\n"
+	code += "\tif !s.Equal(1, len(response.Items)) {	return }\n"
+	code += "\n\n"
+	code += "content := entity." + name + "ToProto(contents[1])"
+	code += "\n\n"
+
+	code += generateEqualList("content", "response.Items[0]", p)
 
 	return
 }
@@ -217,8 +254,10 @@ func testTemplate(packageStruct entity.PackageStruct, p entity.Struct, name stri
 	code += "\tif !s.NoError(err) {	return }\n"
 	code += "\tif !s.Equal(1, len(response.Items)) {	return }\n"
 	code += "\n\n"
+	code += "content := entity." + name + "ToProto(contents[1])"
+	code += "\n\n"
 
-	code += generateEqualList("contents[]", "response.Items[]", p)
+	code += generateEqualList("content", "response.Items[]", p)
 	code += "*/ \n"
 	return
 }
@@ -235,8 +274,10 @@ func testBySearch(packageStruct entity.PackageStruct, p entity.Struct, name stri
 	code += "\tif !s.Equal(int32(1), response.Total) {	return }\n"
 	code += "\tif !s.Equal(1, len(response.Items)) {	return }\n"
 	code += "\n\n"
+	code += "content := entity." + name + "ToProto(contents[1])"
+	code += "\n\n"
 
-	code += generateEqualList("contents[1]", "response.Items[0]", p)
+	code += generateEqualList("content", "response.Items[0]", p)
 	code += "\n\n"
 
 	code += "\tlist" + name + "Request := &" + packageStruct.PackageName + ".List" + name + "Request{\n"
@@ -249,7 +290,9 @@ func testBySearch(packageStruct entity.PackageStruct, p entity.Struct, name stri
 	code += "\tif !s.Equal(int32(1), response.Total) {	return }\n"
 	code += "\tif !s.Equal(1, len(response.Items)) {	return }\n"
 	code += "\n\n"
-	code += generateEqualList("contents[2]", "response.Items[0]", p)
+	code += "content = entity." + name + "ToProto(contents[2])"
+	code += "\n\n"
+	code += generateEqualList("content", "response.Items[0]", p)
 
 	return
 

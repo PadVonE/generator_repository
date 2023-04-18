@@ -44,7 +44,7 @@ func GenerateTestUpdateCode(strc entity.ProtoInterfaceMethod, packageStruct enti
 		FinishedStruct:   finishedStruct,
 		StructForRequest: structForRequest,
 		TestList1:        generateEqualList("request", "response", strc.RequestStruct),
-		TestList2:        generateEqualList("response", "get", strc.ResponseStruct),
+		TestList2:        generateEqualList("response", "protoGet", strc.ResponseStruct),
 	}
 
 	var tpl bytes.Buffer
@@ -87,7 +87,7 @@ func generateUpdateRequestElements(p entity.Struct) (code string, imports string
 		if element.Name == "Id" {
 			continue
 		}
-		generatedCode, generatedImport := generateTestRowRequest(element.Name, element.Type, (i+1)*11, false)
+		generatedCode, generatedImport := generateTestRowRequest(element.Name, element.Type, (i+1)*11, true)
 
 		code += "\t" + generatedCode
 		if !strings.Contains(imports, generatedImport) {

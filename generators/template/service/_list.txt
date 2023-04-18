@@ -19,13 +19,6 @@ func (s *Service) List{{ .Name}}(_ context.Context, request *{{ .PackageStruct.P
 
 {{ .ListFilter}}
 
-	//find
-	err := query.Order("id desc").Limit(int(request.Limit)).Offset(int(request.Offset)).Find(&items).Error
-	if err != nil {
-		sentry.CaptureException(err)
-		return nil, status.Error(codes.Internal, "internal error")
-	}
-
 	//count
 	if err := query.Count(&total).Error; err != nil {
 		sentry.CaptureException(err)
@@ -34,6 +27,13 @@ func (s *Service) List{{ .Name}}(_ context.Context, request *{{ .PackageStruct.P
 
 	if total <= 0 {
 		return nil, status.Error(codes.NotFound, "no rows")
+	}
+
+	//find
+	err := query.Order("id desc").Limit(int(request.Limit)).Offset(int(request.Offset)).Find(&items).Error
+	if err != nil {
+		sentry.CaptureException(err)
+		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	response := &{{ .PackageStruct.PackageName}}.List{{ .Name}}Response{}
