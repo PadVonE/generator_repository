@@ -5,7 +5,6 @@ import (
 	"generator/entity"
 	"github.com/iancoleman/strcase"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,7 +22,7 @@ func GenerateTestUpdateCode(strc entity.ProtoInterfaceMethod, packageStruct enti
 		path = filepath.Join(wd, path)
 	}
 
-	dat, err := ioutil.ReadFile(path)
+	dat, err := os.ReadFile(path)
 	if err != nil {
 		log.Println(err)
 		return
@@ -66,7 +65,7 @@ func generateUpdateFinishedStruct(p entity.Struct) (code string, imports string)
 	for j := 0; j < 2; j++ {
 		code += "\t\t{\n"
 		for i, element := range p.Rows {
-			generatedCode, generatedImport := generateRowRequest(element.Name, element.Type, i+(j*(len(p.Rows))))
+			generatedCode, generatedImport := generateTestRowRequest(element.Name, element.Type, i+(j*(len(p.Rows))), false)
 
 			code += "\t" + generatedCode
 			if !strings.Contains(imports, generatedImport) {
@@ -85,10 +84,10 @@ func generateUpdateRequestElements(p entity.Struct) (code string, imports string
 	imports = ""
 
 	for i, element := range p.Rows {
-		if element.Name=="Id" {
+		if element.Name == "Id" {
 			continue
 		}
-		generatedCode, generatedImport := generateRowRequest(element.Name, element.Type, (i+1)*11)
+		generatedCode, generatedImport := generateTestRowRequest(element.Name, element.Type, (i+1)*11, false)
 
 		code += "\t" + generatedCode
 		if !strings.Contains(imports, generatedImport) {

@@ -54,6 +54,8 @@ func generateEqualList(s1 string, s2 string, p entity.Struct) (code string) {
 
 	code = ""
 	for _, element := range p.Rows {
+
+		// Удаляем эти элементы так как они сгенерированы автоматически
 		if element.Name == "CreatedAt" ||
 			element.Name == "UpdatedAt" ||
 			element.Name == "PublicDate" {
@@ -66,7 +68,7 @@ func generateEqualList(s1 string, s2 string, p entity.Struct) (code string) {
 	return
 }
 
-func generateRowRequest(elementName string, elementType string, inc int) (codeEntity string, imports string) {
+func generateTestRowRequest(elementName string, elementType string, inc int, isProto bool) (codeEntity string, imports string) {
 
 	codeEntity = ""
 
@@ -86,14 +88,24 @@ func generateRowRequest(elementName string, elementType string, inc int) (codeEn
 			boolString = "true"
 		}
 		codeEntity += "\t\t" + elementName + ":" + boolString + ",\n"
-	case "*timestamp.Timestamp":
 	case "*timestamppb.Timestamp":
+
+		if isProto {
+			imports += "\t\"time\"\n"
+			imports += "\t\"google.golang.org/protobuf/types/known/timestamppb\"\n"
+			codeEntity += "\t\t" + elementName + ":timestamppb.New(time.Now()),\n"
+			break
+		}
 
 		imports += "\t\"time\"\n"
 		codeEntity += "\t\t" + elementName + ":time.Now(),\n"
+
 	case "[]byte":
 		imports += "\t\"github.com/google/uuid\"\n"
 		codeEntity += "\t\t" + elementName + ":[]byte(uuid.New().String()),\n"
+	case "[]string":
+		imports += "\t\"github.com/google/uuid\"\n"
+		codeEntity += "\t\t" + elementName + ":[]string{uuid.New().String(),uuid.New().String(),uuid.New().String()},\n"
 	default:
 		if strings.Contains(elementType, "Type") || strings.Contains(elementType, "Status") {
 			codeEntity += "\t\t" + elementName + ":" + strconv.Itoa(inc+1) + ",\n"

@@ -22,12 +22,18 @@ func (s *SuiteTest) TestCreate{{ .Name}}() {
 {{.TestList1}}
 
 	get := entity.{{ .Name}}{}
-	exist, err := s.Service.DB.ID(response.Id).Get(&get)
+
+	query := s.Service.DB.Model(&get)
+
+	query = query.Where("id = ?", response.Id)
+
+    err = query.Take(&get).Error
+
 	if !s.NoError(err) {
 		return
 	}
-	if !s.True(exist) {
-		return
-	}
+
+    protoGet := entity.{{ .Name}}ToProto(&get)
+    
 {{.TestList2}}
 }
