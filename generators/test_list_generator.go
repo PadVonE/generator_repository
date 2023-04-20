@@ -11,7 +11,7 @@ import (
 	"text/template"
 )
 
-func GenerateTestListCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct) (code string, err error) {
+func GenerateTestListCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct, nameInterface entity.NameInterface) (code string, err error) {
 
 	path := filepath.FromSlash("./generators/template/test/_list_test.txt")
 	pathFunc := filepath.FromSlash("./generators/template/test/_list/_func.txt")
@@ -52,8 +52,6 @@ func GenerateTestListCode(strc entity.ProtoInterfaceMethod, packageStruct entity
 
 	funcCode := ""
 
-	name, _ := strc.NameInterface()
-
 	listRequestElement, imports := generateGetRequestElement(strc.BasicStruct)
 
 	for _, rs := range strc.RequestStruct.Rows {
@@ -63,33 +61,33 @@ func GenerateTestListCode(strc entity.ProtoInterfaceMethod, packageStruct entity
 		case "int32":
 			switch rs.Name {
 			case "Limit":
-				realisation = testByLimit(packageStruct, strc.BasicStruct, name)
+				realisation = testByLimit(packageStruct, strc.BasicStruct, nameInterface.Name)
 			case "Offset":
-				realisation = testByOffset(packageStruct, strc.BasicStruct, name)
+				realisation = testByOffset(packageStruct, strc.BasicStruct, nameInterface.Name)
 			default:
-				realisation = testByOtherInt(packageStruct, strc.BasicStruct, name, rs.Name)
+				realisation = testByOtherInt(packageStruct, strc.BasicStruct, nameInterface.Name, rs.Name)
 			}
 		case "string":
 			switch rs.Name {
 			case "Search":
-				realisation = testByLimit(packageStruct, strc.BasicStruct, name)
+				realisation = testByLimit(packageStruct, strc.BasicStruct, nameInterface.Name)
 			default:
 				log.Warn("Type: " + rs.Type + "  " + rs.Name + " not implemented (Generate Service TEST List)")
-				realisation = testTemplate(packageStruct, strc.BasicStruct, name, rs.Name)
+				realisation = testTemplate(packageStruct, strc.BasicStruct, nameInterface.Name, rs.Name)
 			}
 		default:
 			if strings.Contains(rs.Type, "Type") || strings.Contains(rs.Type, "Status") {
-				realisation = testByStatus(packageStruct, strc.BasicStruct, name, rs.Name)
+				realisation = testByStatus(packageStruct, strc.BasicStruct, nameInterface.Name, rs.Name)
 				break
 			}
 
-			realisation = testTemplate(packageStruct, strc.BasicStruct, name, rs.Name)
+			realisation = testTemplate(packageStruct, strc.BasicStruct, nameInterface.Name, rs.Name)
 			log.Warn("Type: " + rs.Type + "  " + rs.Name + " not implemented (Generate Service TEST List)")
 		}
 
 		data := DataTest{
-			Name:            name,
-			NameInSnake:     strcase.ToSnake(name),
+			Name:            nameInterface.GetMethodName(),
+			NameInSnake:     strcase.ToSnake(nameInterface.Name),
 			FilterBy:        rs.Name,
 			Imports:         imports,
 			PackageStruct:   packageStruct,
@@ -107,8 +105,8 @@ func GenerateTestListCode(strc entity.ProtoInterfaceMethod, packageStruct entity
 	}
 
 	data := DataTest{
-		Name:           name,
-		NameInSnake:    strcase.ToSnake(name),
+		Name:           nameInterface.GetMethodName(),
+		NameInSnake:    strcase.ToSnake(nameInterface.Name),
 		Imports:        imports,
 		Functions:      funcCode,
 		PackageStruct:  packageStruct,

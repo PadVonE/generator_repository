@@ -11,7 +11,7 @@ import (
 	"text/template"
 )
 
-func GenerateTestUpdateCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct) (code string, err error) {
+func GenerateTestUpdateCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct, nameInterface entity.NameInterface) (code string, err error) {
 
 	path := filepath.FromSlash("./generators/template/test/_update_test.txt")
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
@@ -34,11 +34,9 @@ func GenerateTestUpdateCode(strc entity.ProtoInterfaceMethod, packageStruct enti
 	finishedStruct, imports := generateUpdateFinishedStruct(strc.RequestStruct)
 	structForRequest, _ := generateUpdateRequestElements(strc.RequestStruct)
 
-	name, _ := strc.NameInterface()
-
 	data := DataTest{
-		Name:             name,
-		NameInSnake:      strcase.ToSnake(name),
+		Name:             nameInterface.GetMethodName(),
+		NameInSnake:      strcase.ToSnake(nameInterface.Name),
 		Imports:          imports,
 		PackageStruct:    packageStruct,
 		FinishedStruct:   finishedStruct,

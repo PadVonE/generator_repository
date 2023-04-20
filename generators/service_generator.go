@@ -11,9 +11,9 @@ import (
 	"text/template"
 )
 
-func GenerateServiceCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct, action string) (code string, err error) {
+func GenerateServiceCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct, nameInterface entity.NameInterface) (code string, err error) {
 
-	path := filepath.FromSlash("./generators/template/service/_" + strings.ToLower(action) + ".txt")
+	path := filepath.FromSlash("./generators/template/service/_" + strings.ToLower(nameInterface.Action) + ".txt")
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
 		wd, err := os.Getwd()
 		if err != nil {
@@ -31,13 +31,11 @@ func GenerateServiceCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 
 	t := template.Must(template.New("const-list").Parse(source))
 
-	name, _ := strc.NameInterface()
-
-	listFilter, imports := ListFilter(strc.RequestStruct, strcase.ToSnake(name))
+	listFilter, imports := ListFilter(strc.RequestStruct, strcase.ToSnake(nameInterface.Name))
 	data := Data{
-		Name:          name,
-		NameInSnake:   strcase.ToSnake(name),
-		NameInCamel:   strcase.ToLowerCamel(name),
+		Name:          nameInterface.GetMethodName(),
+		NameInSnake:   strcase.ToSnake(nameInterface.Name),
+		NameInCamel:   strcase.ToLowerCamel(nameInterface.Name),
 		PackageStruct: packageStruct,
 
 		ListFilter: listFilter,

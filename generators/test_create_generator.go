@@ -11,7 +11,7 @@ import (
 	"text/template"
 )
 
-func GenerateTestCreateCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct) (code string, err error) {
+func GenerateTestCreateCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct, nameInterface entity.NameInterface) (code string, err error) {
 
 	path := filepath.FromSlash("./generators/template/test/_create_test.txt")
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
@@ -33,15 +33,13 @@ func GenerateTestCreateCode(strc entity.ProtoInterfaceMethod, packageStruct enti
 
 	listRequestElement, imports := generateCreateRequestElement(strc.RequestStruct)
 
-	name, _ := strc.NameInterface()
-
 	data := DataTest{
-		Name:           name,
-		NameInSnake:    strcase.ToSnake(name),
+		Name:           nameInterface.GetMethodName(),
+		NameInSnake:    strcase.ToSnake(nameInterface.Name),
 		Imports:        imports,
 		PackageStruct:  packageStruct,
 		FinishedStruct: listRequestElement,
-		TestList1:      generateEqualList("create"+name+"Request", "response", strc.RequestStruct),
+		TestList1:      generateEqualList("create"+nameInterface.Name+"Request", "response", strc.RequestStruct),
 		TestList2:      generateEqualList("response", "protoGet", strc.ResponseStruct),
 	}
 

@@ -61,16 +61,16 @@ func GenerateServiceFiles(packageInfo entity.PackageStruct, protoInterface entit
 		// Generate file
 
 		code := ""
-		name, action := pi.NameInterface()
-
-		saveFilePath := servicePath + "/service/" + strcase.ToSnake(name) + "_" + strcase.ToSnake(action) + ".go"
+		nameInterface := pi.NameInterface(&protoInterface)
+		saveFilePath := servicePath + "/service/" + nameInterface.FileName() + ".go"
 
 		// Если не удалось определить экшн то переходим к следующему методу
-		if len(action) == 0 {
+		if len(nameInterface.Action) == 0 {
+			log.Warn("action not allowed:", pi.NameMethod)
 			continue
 		}
 
-		code, err = generators.GenerateServiceCode(pi, packageInfo, action)
+		code, err = generators.GenerateServiceCode(pi, packageInfo, nameInterface)
 
 		if err != nil {
 			log.Error(err)
@@ -80,7 +80,7 @@ func GenerateServiceFiles(packageInfo entity.PackageStruct, protoInterface entit
 			err := FileSave(saveFilePath, code)
 
 			if err == nil {
-				log.WithField("File", saveFilePath).Println("Service file created ", strcase.ToSnake(name)+"_"+strcase.ToSnake(action)+".go")
+				log.WithField("File", saveFilePath).Println("Service file created ", nameInterface.FileName()+".go")
 			}
 		}
 
@@ -97,28 +97,28 @@ func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.P
 	for _, pi := range protoInterface.Methods {
 		// Generate file
 
-		name, action := pi.NameInterface()
+		nameInterface := pi.NameInterface(&protoInterface)
+		saveFileTestPath := servicePath + "/service/" + nameInterface.FileName() + "_test.go"
 
 		// Если не удалось определить экшн то переходим к следующему методу
-		if len(action) == 0 {
+		if len(nameInterface.Action) == 0 {
 			continue
 		}
 
 		// Generate tests
 
-		saveFileTestPath := servicePath + "/service/" + strcase.ToSnake(name) + "_" + strcase.ToSnake(action) + "_test.go"
 		codeTest := ""
-		switch action {
+		switch nameInterface.Action {
 		case "Create":
-			codeTest, err = generators.GenerateTestCreateCode(pi, packageInfo)
+			codeTest, err = generators.GenerateTestCreateCode(pi, packageInfo, nameInterface)
 		case "Update":
-			codeTest, err = generators.GenerateTestUpdateCode(pi, packageInfo)
+			codeTest, err = generators.GenerateTestUpdateCode(pi, packageInfo, nameInterface)
 		case "Delete":
-			codeTest, err = generators.GenerateTestDeleteCode(pi, packageInfo)
+			codeTest, err = generators.GenerateTestDeleteCode(pi, packageInfo, nameInterface)
 		case "Get":
-			codeTest, err = generators.GenerateTestGetCode(pi, packageInfo)
+			codeTest, err = generators.GenerateTestGetCode(pi, packageInfo, nameInterface)
 		case "List":
-			codeTest, err = generators.GenerateTestListCode(pi, packageInfo)
+			codeTest, err = generators.GenerateTestListCode(pi, packageInfo, nameInterface)
 
 		}
 
@@ -132,7 +132,7 @@ func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.P
 				err = FileSave(saveFileTestPath, codeTest)
 
 				if err == nil {
-					log.WithField("File", saveFileTestPath).Println("Test file created ", strcase.ToSnake(name)+"_"+strcase.ToSnake(action)+".go")
+					log.WithField("File", saveFileTestPath).Println("Test file created ", nameInterface.FileName()+".go")
 				}
 			}
 		}
@@ -292,16 +292,15 @@ func GenerateGatewayFiles(packageInfo entity.PackageStruct, protoInterface entit
 		// Generate file
 
 		code := ""
-		name, action := pi.NameInterface()
-
-		saveFilePath := servicePath + "/service/" + strcase.ToSnake(name) + "_" + strcase.ToSnake(action) + ".go"
+		nameInterface := pi.NameInterface(&protoInterface)
+		saveFilePath := servicePath + "/service/" + nameInterface.FileName() + "_test.go"
 
 		// Если не удалось определить экшн то переходим к следующему методу
-		if len(action) == 0 {
+		if len(nameInterface.Action) == 0 {
 			continue
 		}
 
-		code, err = generators.GenerateGatewayCode(pi, packageInfo, action)
+		code, err = generators.GenerateGatewayCode(pi, packageInfo, nameInterface)
 
 		if err != nil {
 			log.Error(err)
@@ -311,7 +310,7 @@ func GenerateGatewayFiles(packageInfo entity.PackageStruct, protoInterface entit
 			err := FileSave(saveFilePath, code)
 
 			if err == nil {
-				log.WithField("File", saveFilePath).Println("Service file created ", strcase.ToSnake(name)+"_"+strcase.ToSnake(action)+".go")
+				log.WithField("File", saveFilePath).Println("Service file created ", nameInterface.FileName()+".go")
 			}
 		}
 

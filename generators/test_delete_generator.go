@@ -11,7 +11,7 @@ import (
 	"text/template"
 )
 
-func GenerateTestDeleteCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct) (code string, err error) {
+func GenerateTestDeleteCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct, nameInterface entity.NameInterface) (code string, err error) {
 
 	path := filepath.FromSlash("./generators/template/test/_delete_test.txt")
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
@@ -34,11 +34,9 @@ func GenerateTestDeleteCode(strc entity.ProtoInterfaceMethod, packageStruct enti
 	finishedStruct, imports := generateDeleteFinishedStruct(strc.BasicStruct)
 	structForRequest, _ := generateDeleteRequestElements(strc.BasicStruct)
 
-	name, _ := strc.NameInterface()
-
 	data := DataTest{
-		Name:             name,
-		NameInSnake:      strcase.ToSnake(name),
+		Name:             nameInterface.GetMethodName(),
+		NameInSnake:      strcase.ToSnake(nameInterface.Name),
 		Imports:          imports,
 		PackageStruct:    packageStruct,
 		FinishedStruct:   finishedStruct,

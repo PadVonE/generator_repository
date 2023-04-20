@@ -11,7 +11,7 @@ import (
 	"text/template"
 )
 
-func GenerateTestGetCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct) (code string, err error) {
+func GenerateTestGetCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct, nameInterface entity.NameInterface) (code string, err error) {
 
 	path := filepath.FromSlash("./generators/template/test/_get_test.txt")
 	pathFunc := filepath.FromSlash("./generators/template/test/_get/_func.txt")
@@ -52,15 +52,13 @@ func GenerateTestGetCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 
 	funcCode := ""
 
-	name, _ := strc.NameInterface()
-
 	listRequestElement, imports := generateGetRequestElement(strc.ResponseStruct)
 
 	for _, rs := range strc.RequestStruct.Rows {
 
 		data := DataTest{
-			Name:           name,
-			NameInSnake:    strcase.ToSnake(name),
+			Name:           nameInterface.GetMethodName(),
+			NameInSnake:    strcase.ToSnake(nameInterface.Name),
 			FilterBy:       rs.Name,
 			Imports:        imports,
 			PackageStruct:  packageStruct,
@@ -77,8 +75,8 @@ func GenerateTestGetCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 	}
 
 	data := DataTest{
-		Name:           name,
-		NameInSnake:    strcase.ToSnake(name),
+		Name:           nameInterface.GetMethodName(),
+		NameInSnake:    strcase.ToSnake(nameInterface.Name),
 		Imports:        imports,
 		Functions:      funcCode,
 		PackageStruct:  packageStruct,
