@@ -4,6 +4,7 @@ import (
 	"github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"time"
+{{ .Imports}}
 )
 
 type {{ .Name}} struct {

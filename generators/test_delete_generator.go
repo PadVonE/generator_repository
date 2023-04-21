@@ -5,14 +5,13 @@ import (
 	"generator/entity"
 	"github.com/iancoleman/strcase"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 )
 
-func GenerateTestDeleteCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct) (code string, err error) {
+func GenerateTestDeleteCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct, nameInterface entity.NameInterface) (code string, err error) {
 
 	path := filepath.FromSlash("./generators/template/test/_delete_test.txt")
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
@@ -23,7 +22,7 @@ func GenerateTestDeleteCode(strc entity.ProtoInterfaceMethod, packageStruct enti
 		path = filepath.Join(wd, path)
 	}
 
-	dat, err := ioutil.ReadFile(path)
+	dat, err := os.ReadFile(path)
 	if err != nil {
 		log.Println(err)
 		return
@@ -35,11 +34,9 @@ func GenerateTestDeleteCode(strc entity.ProtoInterfaceMethod, packageStruct enti
 	finishedStruct, imports := generateDeleteFinishedStruct(strc.BasicStruct)
 	structForRequest, _ := generateDeleteRequestElements(strc.BasicStruct)
 
-	name, _ := strc.NameInterface()
-
 	data := DataTest{
-		Name:             name,
-		NameInSnake:      strcase.ToSnake(name),
+		Name:             nameInterface.GetMethodName(),
+		NameInSnake:      strcase.ToSnake(nameInterface.Name),
 		Imports:          imports,
 		PackageStruct:    packageStruct,
 		FinishedStruct:   finishedStruct,
@@ -66,14 +63,14 @@ func generateDeleteFinishedStruct(p entity.Struct) (code string, imports string)
 	for j := 0; j < 2; j++ {
 		code += "\t\t{\n"
 		for i, element := range p.Rows {
-			if element.Name=="Id" ||
-			element.Name=="CreatedAt" ||
-			element.Name=="UpdatedAt" ||
-			element.Name=="PublicDate" {
+			if element.Name == "Id" ||
+				element.Name == "CreatedAt" ||
+				element.Name == "UpdatedAt" ||
+				element.Name == "PublicDate" {
 				continue
 			}
 
-			generatedCode, generatedImport := generateRowRequest(element.Name, element.Type, i+(j*(len(p.Rows))))
+			generatedCode, generatedImport := generateTestRowRequest(element.Name, element.Type, i+(j*(len(p.Rows))), false)
 
 			code += "\t" + generatedCode
 			if !strings.Contains(imports, generatedImport) {
@@ -92,10 +89,10 @@ func generateDeleteRequestElements(p entity.Struct) (code string, imports string
 	imports = ""
 
 	for i, element := range p.Rows {
-		if element.Name=="Id" {
+		if element.Name == "Id" {
 			continue
 		}
-		generatedCode, generatedImport := generateRowRequest(element.Name, element.Type, (i+1)*11)
+		generatedCode, generatedImport := generateTestRowRequest(element.Name, element.Type, (i+1)*11, false)
 
 		code += "\t" + generatedCode
 		if !strings.Contains(imports, generatedImport) {

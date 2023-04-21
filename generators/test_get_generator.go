@@ -5,16 +5,14 @@ import (
 	"generator/entity"
 	"github.com/iancoleman/strcase"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 )
 
+func GenerateTestGetCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct, nameInterface entity.NameInterface) (code string, err error) {
 
-func GenerateTestGetCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct) (code string, err error) {
-	
 	path := filepath.FromSlash("./generators/template/test/_get_test.txt")
 	pathFunc := filepath.FromSlash("./generators/template/test/_get/_func.txt")
 
@@ -26,7 +24,7 @@ func GenerateTestGetCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 		path = filepath.Join(wd, path)
 	}
 
-	dat, err := ioutil.ReadFile(path)
+	dat, err := os.ReadFile(path)
 	if err != nil {
 		log.Println(err)
 		return
@@ -34,7 +32,6 @@ func GenerateTestGetCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 	source := string(dat)
 
 	t := template.Must(template.New("const-list").Parse(source))
-
 
 	if len(pathFunc) > 0 && !os.IsPathSeparator(pathFunc[0]) {
 		wd, err := os.Getwd()
@@ -44,7 +41,7 @@ func GenerateTestGetCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 		pathFunc = filepath.Join(wd, pathFunc)
 	}
 
-	datFunc, errFunc := ioutil.ReadFile(pathFunc)
+	datFunc, errFunc := os.ReadFile(pathFunc)
 	if errFunc != nil {
 		log.Println(errFunc)
 		return
@@ -55,20 +52,18 @@ func GenerateTestGetCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 
 	funcCode := ""
 
-	name,_ := strc.NameInterface()
+	listRequestElement, imports := generateGetRequestElement(strc.ResponseStruct)
 
-	listRequestElement,imports := generateGetRequestElement(strc.ResponseStruct)
-
-	for _,rs := range strc.RequestStruct.Rows{
+	for _, rs := range strc.RequestStruct.Rows {
 
 		data := DataTest{
-			Name:           name,
-			NameInSnake:    strcase.ToSnake(name),
-			FilterBy:    	rs.Name,
+			Name:           nameInterface.GetMethodName(),
+			NameInSnake:    strcase.ToSnake(nameInterface.Name),
+			FilterBy:       rs.Name,
 			Imports:        imports,
 			PackageStruct:  packageStruct,
 			FinishedStruct: listRequestElement,
-			TestList2:      generateEqualList("contents[1]","response",strc.ResponseStruct),
+			TestList2:      generateEqualList("content", "response", strc.ResponseStruct),
 		}
 
 		var funcTpl bytes.Buffer
@@ -76,20 +71,18 @@ func GenerateTestGetCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 			//return err
 		}
 
-		funcCode += "\n\n"+funcTpl.String()
+		funcCode += "\n\n" + funcTpl.String()
 	}
-
 
 	data := DataTest{
-		Name:           name,
-		NameInSnake:    strcase.ToSnake(name),
+		Name:           nameInterface.GetMethodName(),
+		NameInSnake:    strcase.ToSnake(nameInterface.Name),
 		Imports:        imports,
-		Functions:        funcCode,
+		Functions:      funcCode,
 		PackageStruct:  packageStruct,
 		FinishedStruct: listRequestElement,
-		TestList2:      generateEqualList("response","get",strc.ResponseStruct),
+		TestList2:      generateEqualList("response", "get", strc.ResponseStruct),
 	}
-
 
 	var tpl bytes.Buffer
 	if err := t.Execute(&tpl, data); err != nil {
@@ -98,11 +91,10 @@ func GenerateTestGetCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 
 	code = tpl.String()
 
-
 	return
 }
 
-func generateGetRequestElement(p entity.Struct) (code string,imports string) {
+func generateGetRequestElement(p entity.Struct) (code string, imports string) {
 
 	code = ""
 	imports = ""
@@ -110,14 +102,14 @@ func generateGetRequestElement(p entity.Struct) (code string,imports string) {
 	for j := 0; j < 3; j++ {
 		code += "\t\t{\n"
 		for i, element := range p.Rows {
-			if element.Name=="Id" ||
-				element.Name=="CreatedAt" ||
-				element.Name=="UpdatedAt" ||
-				element.Name=="PublicDate" {
+			if element.Name == "Id" ||
+				element.Name == "CreatedAt" ||
+				element.Name == "UpdatedAt" ||
+				element.Name == "PublicDate" {
 				continue
 			}
 
-			generatedCode, generatedImport := generateRowRequest(element.Name, element.Type, i+(j*(len(p.Rows))))
+			generatedCode, generatedImport := generateTestRowRequest(element.Name, element.Type, i+(j*(len(p.Rows))), false)
 
 			code += "\t" + generatedCode
 			if !strings.Contains(imports, generatedImport) {
@@ -129,4 +121,3 @@ func generateGetRequestElement(p entity.Struct) (code string,imports string) {
 
 	return
 }
-

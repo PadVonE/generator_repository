@@ -5,7 +5,6 @@ import (
 	"generator/entity"
 	"github.com/iancoleman/strcase"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,7 +22,7 @@ func GenerateEntity(strc entity.Struct, packageStruct entity.PackageStruct, crea
 		path = filepath.Join(wd, path)
 	}
 
-	dat, err := ioutil.ReadFile(path)
+	dat, err := os.ReadFile(path)
 	if err != nil {
 		log.Println(err)
 		return
@@ -31,11 +30,7 @@ func GenerateEntity(strc entity.Struct, packageStruct entity.PackageStruct, crea
 	source := string(dat)
 
 	t := template.Must(template.New("const-list").Parse(source))
-	rows := ""
-
-	for _, s := range strc.Rows {
-		rows += generateRow(s)
-	}
+	rows, imports := generateRow(strc)
 
 	createProtoTo := ""
 	updateProtoTo := ""
@@ -55,6 +50,7 @@ func GenerateEntity(strc entity.Struct, packageStruct entity.PackageStruct, crea
 		CreateProtoTo: createProtoTo,
 		UpdateProtoTo: updateProtoTo,
 		PackageStruct: packageStruct,
+		Imports:       imports,
 	}
 
 	var tpl bytes.Buffer
@@ -67,35 +63,46 @@ func GenerateEntity(strc entity.Struct, packageStruct entity.PackageStruct, crea
 	return
 }
 
-func generateRow(field entity.StructField) string {
+func generateRow(row entity.Struct) (code string, imports string) {
 	tags := ""
-	fType := field.Type
+	code = ""
+	imports = ""
+	countImports := map[string]int{}
 
-	switch field.Name {
-	case "Id":
-		tags = ""
-	case "CreatedAt":
-		tags = "`gorm:\"->;<-:create\"`"
-	case "UpdatedAt":
-		tags = ""
+	for _, field := range row.Rows {
 
-	}
-	//	GeoCodes            pq.StringArray `gorm:"type:char(2)[]"`
-	switch field.Type {
-	case "*timestamp.Timestamp":
-	case "*timestamppb.Timestamp":
-		fType = "time.Time"
-	case "[]string":
-		fType = "pq.StringArray"
-		tags = "`gorm:\"type:varchar()[]\"`"
-	default:
-		if strings.Contains(field.Type, "Type") || strings.Contains(field.Type, "Status") {
-			fType = "int32"
+		fType := field.Type
+
+		switch field.Name {
+		case "Id":
+			tags = ""
+		case "CreatedAt":
+			tags = "`gorm:\"->;<-:create\"`"
+		case "UpdatedAt":
+			tags = ""
+
 		}
+		//	GeoCodes            pq.StringArray `gorm:"type:char(2)[]"`
+		switch field.Type {
+		case "*timestamp.Timestamp":
+		case "*timestamppb.Timestamp":
+			fType = "time.Time"
+		case "[]string":
+			if countImports["[]string"] == 0 {
+				imports += "\t\"github.com/lib/pq\""
+			}
+			countImports["[]string"]++
+
+			fType = "pq.StringArray"
+			tags = "`gorm:\"type:varchar[]\"`"
+		default:
+			if strings.Contains(field.Type, "Type") || strings.Contains(field.Type, "Status") {
+				fType = "int32"
+			}
+		}
+		code += "\t" + field.Name + " " + fType + " " + tags + "\n"
 	}
-
-	return "\t" + field.Name + " " + fType + " " + tags + "\n"
-
+	return
 }
 
 func ToProto(strc entity.Struct, repositoryName string) (code string) {
@@ -106,16 +113,17 @@ func ToProto(strc entity.Struct, repositoryName string) (code string) {
 	for _, row := range strc.Rows {
 		code += "\t\t"
 		switch row.Type {
-		case "*timestamp.Timestamp":
-		case "*timestamppb.Timestamp":
-			switch row.Name {
-			case "CreatedAt":
-				code += "CreatedAt:  timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".CreatedAt),\n"
-			case "UpdatedAt":
-				code += "UpdatedAt:  timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".UpdatedAt),\n"
-			case "PublicDate":
-				code += "PublicDate:  timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".PublicDate),\n"
-			}
+		case "*timestamp.Timestamp", "*timestamppb.Timestamp":
+			//switch row.Name {
+			//case "CreatedAt":
+			//	code += "CreatedAt:  timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".CreatedAt),\n"
+			//case "UpdatedAt":
+			//	code += "UpdatedAt:  timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".UpdatedAt),\n"
+			//case "PublicDate":
+			//	code += "PublicDate:  timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".PublicDate),\n"
+			//}
+
+			code += "" + row.Name + ":  timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + "." + row.Name + "),\n"
 
 		case "int32", "int64":
 			code += "" + row.Name + ":   " + strcase.ToLowerCamel(strc.Name) + "." + row.Name + ",\n"
@@ -128,6 +136,8 @@ func ToProto(strc entity.Struct, repositoryName string) (code string) {
 		case "[]string":
 			code += "" + row.Name + ":   " + strcase.ToLowerCamel(strc.Name) + "." + row.Name + ",\n"
 		case "[]int32":
+			code += "" + row.Name + ":   " + strcase.ToLowerCamel(strc.Name) + "." + row.Name + ",\n"
+		case "[]byte":
 			code += "" + row.Name + ":   " + strcase.ToLowerCamel(strc.Name) + "." + row.Name + ",\n"
 		default:
 			if strings.Contains(row.Type, "Type") || strings.Contains(row.Type, "Status") {
@@ -160,8 +170,8 @@ func CreateProtoTo(strc entity.Struct, pkg string) (code string) {
 		}
 
 		switch row.Type {
-		case "*timestamp.Timestamp":
-		//	code += "\t" + strcase.ToLowerCamel(row.Name) + " := timestamppb.New(proto." + row.Name + ")\n\n" + code
+		case "*timestamp.Timestamp", "*timestamppb.Timestamp":
+			//	code += "\t" + strcase.ToLowerCamel(row.Name) + " := timestamppb.New(proto." + row.Name + ")\n\n" + code
 			code += "\t\t" + row.Name + ":  proto." + row.Name + ".AsTime(),\n"
 		case "int32", "int64":
 			code += "\t\t" + row.Name + ": proto." + row.Name + ",\n"
@@ -172,6 +182,8 @@ func CreateProtoTo(strc entity.Struct, pkg string) (code string) {
 		case "bool":
 			code += "\t\t" + row.Name + ": proto." + row.Name + ",\n"
 		case "[]string":
+			code += "\t\t" + row.Name + ": proto." + row.Name + ",\n"
+		case "[]byte":
 			code += "\t\t" + row.Name + ": proto." + row.Name + ",\n"
 		case "[]int32":
 			code += "\t\t" + row.Name + ": proto." + row.Name + ",\n"
@@ -206,7 +218,7 @@ func UpdateProtoTo(strc entity.Struct, pkg string) (code string) {
 		}
 
 		switch row.Type {
-		case "*timestamp.Timestamp":
+		case "*timestamp.Timestamp", "*timestamppb.Timestamp":
 			//variableInFunction += "\n\t" + strcase.ToLowerCamel(row.Name) + ",_ := proto." + row.Name + ".asTime()\n\n"
 			code += "\t\t" + row.Name + ": proto." + row.Name + ".AsTime(),\n"
 		case "int32", "int64":
@@ -218,6 +230,8 @@ func UpdateProtoTo(strc entity.Struct, pkg string) (code string) {
 		case "bool":
 			code += "\t\t" + row.Name + ": proto." + row.Name + ",\n"
 		case "[]string":
+			code += "\t\t" + row.Name + ": proto." + row.Name + ",\n"
+		case "[]byte":
 			code += "\t\t" + row.Name + ": proto." + row.Name + ",\n"
 		default:
 			if strings.Contains(row.Type, "Type") || strings.Contains(row.Type, "Status") {

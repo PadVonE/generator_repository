@@ -42,6 +42,8 @@ func (s *Service) create{{ .Name}}(params admin_gateway_service.Create{{ .Name}}
 		EditedUserId:        info.UserId,
 		Name:                params.Body.Name,
 		  // TODO Допиши параметры
+
+
 	}
 
 	item, err := s.{{ .Name}}Repository.Create{{ .Name}}(context.Background(), &create{{ .Name}}Request)
@@ -54,7 +56,8 @@ func (s *Service) create{{ .Name}}(params admin_gateway_service.Create{{ .Name}}
 		ID:                  item.Id,
 		CreatedAt:           strfmt.DateTime(item.CreatedAt.AsTime()),
 		UpdatedAt:           strfmt.DateTime(item.UpdatedAt.AsTime()),
-		  // TODO Допиши параметры
+				  // TODO Допиши параметры
+		{{ .GatewayVariables}}
 	}
 
 	return response, nil

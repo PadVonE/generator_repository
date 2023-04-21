@@ -14,10 +14,10 @@ func (s *SuiteTest) TestUpdate{{ .Name}}() {
 
 
 	for _, element := range update{{ .Name}}Request {
-		_, err := s.Service.DB.Insert(element)
-		if !s.NoError(err) {
-			return
-		}
+        err := s.Service.DB.Create(&element).Error
+        if !s.NoError(err) {
+            return
+        }
 	}
 
 	request := &{{ .PackageStruct.PackageName}}.Update{{ .Name}}Request{
@@ -37,13 +37,15 @@ func (s *SuiteTest) TestUpdate{{ .Name}}() {
 {{.TestList1}}
 
 	get := entity.{{ .Name}}{}
-	exist, err := s.Service.DB.ID(response.Id).Get(&get)
-	if !s.NoError(err) {
-		return
-	}
-	if !s.True(exist) {
-		return
-	}
+    query := s.Service.DB.Model(&get)
+    query = query.Where("id = ?", response.Id)
+    err = query.Take(&get).Error
+
+    if !s.NoError(err) {
+        return
+    }
+
+    protoGet := entity.{{ .Name}}ToProto(&get)
 
 	s.True(get.UpdatedAt.Nanosecond() > get.CreatedAt.Nanosecond())
 {{.TestList2}}

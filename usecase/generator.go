@@ -8,10 +8,12 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
 func GenerateEntity(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct, replaceFile bool) {
+	log.Println("\033[35m", "\n\nEntity files", "\033[0m")
 
 	servicePath := filepath.FromSlash("./../" + serviceName)
 
@@ -49,6 +51,8 @@ func GenerateEntity(packageInfo entity.PackageStruct, serviceName string, listOf
 }
 
 func GenerateServiceFiles(packageInfo entity.PackageStruct, protoInterface entity.ProtoInterface, serviceName string, replaceFile bool) {
+	log.Println("\033[35m", "\n\nService files", "\033[0m")
+
 	var err error
 
 	servicePath := filepath.FromSlash("./../" + serviceName)
@@ -57,16 +61,16 @@ func GenerateServiceFiles(packageInfo entity.PackageStruct, protoInterface entit
 		// Generate file
 
 		code := ""
-		name, action := pi.NameInterface()
-
-		saveFilePath := servicePath + "/service/" + strcase.ToSnake(name) + "_" + strcase.ToSnake(action) + ".go"
+		nameInterface := pi.NameInterface(&protoInterface)
+		saveFilePath := servicePath + "/service/" + nameInterface.FileName() + ".go"
 
 		// Если не удалось определить экшн то переходим к следующему методу
-		if len(action) == 0 {
+		if len(nameInterface.Action) == 0 {
+			log.Warn("action not allowed:", pi.NameMethod)
 			continue
 		}
 
-		code, err = generators.GenerateServiceCode(pi, packageInfo, action)
+		code, err = generators.GenerateServiceCode(pi, packageInfo, nameInterface)
 
 		if err != nil {
 			log.Error(err)
@@ -76,7 +80,7 @@ func GenerateServiceFiles(packageInfo entity.PackageStruct, protoInterface entit
 			err := FileSave(saveFilePath, code)
 
 			if err == nil {
-				log.WithField("File", saveFilePath).Println("Service file created ", strcase.ToSnake(name)+"_"+strcase.ToSnake(action)+".go")
+				log.WithField("File", saveFilePath).Println("Service file created ", nameInterface.FileName()+".go")
 			}
 		}
 
@@ -84,6 +88,8 @@ func GenerateServiceFiles(packageInfo entity.PackageStruct, protoInterface entit
 }
 
 func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.ProtoInterface, serviceName string, replaceFile bool) {
+	log.Println("\033[35m", "\n\nTEST files", "\033[0m")
+
 	var err error
 
 	servicePath := filepath.FromSlash("./../" + serviceName)
@@ -91,28 +97,28 @@ func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.P
 	for _, pi := range protoInterface.Methods {
 		// Generate file
 
-		name, action := pi.NameInterface()
+		nameInterface := pi.NameInterface(&protoInterface)
+		saveFileTestPath := servicePath + "/service/" + nameInterface.FileName() + "_test.go"
 
 		// Если не удалось определить экшн то переходим к следующему методу
-		if len(action) == 0 {
+		if len(nameInterface.Action) == 0 {
 			continue
 		}
 
 		// Generate tests
 
-		saveFileTestPath := servicePath + "/service/" + strcase.ToSnake(name) + "_" + strcase.ToSnake(action) + "_test.go"
 		codeTest := ""
-		switch action {
+		switch nameInterface.Action {
 		case "Create":
-			codeTest, err = generators.GenerateTestCreateCode(pi, packageInfo)
+			codeTest, err = generators.GenerateTestCreateCode(pi, packageInfo, nameInterface)
 		case "Update":
-			codeTest, err = generators.GenerateTestUpdateCode(pi, packageInfo)
+			codeTest, err = generators.GenerateTestUpdateCode(pi, packageInfo, nameInterface)
 		case "Delete":
-			codeTest, err = generators.GenerateTestDeleteCode(pi, packageInfo)
+			codeTest, err = generators.GenerateTestDeleteCode(pi, packageInfo, nameInterface)
 		case "Get":
-			codeTest, err = generators.GenerateTestGetCode(pi, packageInfo)
+			codeTest, err = generators.GenerateTestGetCode(pi, packageInfo, nameInterface)
 		case "List":
-			codeTest, err = generators.GenerateTestListCode(pi, packageInfo)
+			codeTest, err = generators.GenerateTestListCode(pi, packageInfo, nameInterface)
 
 		}
 
@@ -126,7 +132,7 @@ func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.P
 				err = FileSave(saveFileTestPath, codeTest)
 
 				if err == nil {
-					log.WithField("File", saveFileTestPath).Println("Test file created ", strcase.ToSnake(name)+"_"+strcase.ToSnake(action)+".go")
+					log.WithField("File", saveFileTestPath).Println("Test file created ", nameInterface.FileName()+".go")
 				}
 			}
 		}
@@ -135,10 +141,12 @@ func GenerateTestFiles(packageInfo entity.PackageStruct, protoInterface entity.P
 }
 
 func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct, replaceFile bool) {
-	servicePath := filepath.FromSlash("./../" + serviceName)
+	log.Println("\033[35m", "\n\nMigration file", "\033[0m")
 
+	servicePath := filepath.FromSlash("./../" + serviceName)
+	migration := ""
 	//Таблица для отслеживания изменений
-	migration := "create table if not exists edited_log (\n" +
+	migrationEditLog := "create table if not exists edited_log(\n" +
 		"    id serial not null constraint edited_log_event_pkey primary key,\n" +
 		"    created_at timestamp not null default CURRENT_TIMESTAMP,\n" +
 		"    action text not null,\n" +
@@ -148,10 +156,10 @@ func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string,
 		"    json_string json not null\n);\n\n"
 
 	// Инлекс
-	migration += "create index if not exists edited_log_table_name_table_id_idx on edited_log (table_name, table_id);\n\n"
+	migrationEditLog += "create index if not exists edited_log_table_name_table_id_idx on edited_log (table_name, table_id);\n\n"
 
 	// Тригер
-	migration += "create or replace function edited_user_id() returns trigger\n" +
+	migrationEditLog += "create or replace function edited_user_id() returns trigger\n" +
 		"    language plpgsql\nas\n$$\nbegin\n" +
 		"    if new.edited_user_id > 0 then\n" +
 		"        insert into \"edited_log\" (\"action\", \"table_name\", \"table_id\", \"edited_user_id\", \"json_string\")\n" +
@@ -159,28 +167,61 @@ func GenerateMigrationFile(packageInfo entity.PackageStruct, serviceName string,
 		"    end if;\n" +
 		"    return new;\nend;\n$$;\n\n"
 
+	hasEditedLog := false
 	for _, l := range listOfStruct {
 		if l.Type == entity.TypeMain {
-			code, err := generators.GenerateMigration(l, packageInfo)
+			code, addEditLogTrigger, err := generators.GenerateMigration(l)
 			if err != nil {
 				log.Error(err)
 				continue
+			}
+
+			if addEditLogTrigger == true {
+				hasEditedLog = true
 			}
 			migration += code
 		}
 	}
 	now := time.Now()
 
-	saveFilePath := servicePath + "/migrations/" + strconv.Itoa(int(now.Unix())) + "_init.up.sql"
+	if hasEditedLog {
+		migration = migrationEditLog + migration
+	}
+
+	saveFilePath := servicePath + "/migrations/"
+	saveFileName := strconv.Itoa(int(now.Unix())) + "_init.up.sql"
+
+	// Проверим есть ли файл миграции
+
+	entries, err := os.ReadDir(saveFilePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	migrationIsset := false
+	for _, e := range entries {
+		log.Println(e.Name())
+		contain := strings.Contains(e.Name(), "_init")
+		if contain {
+			migrationIsset = true
+			saveFileName = e.Name()
+		}
+	}
+
+	if migrationIsset {
+		log.Warn("Migration isset in path " + saveFilePath + saveFileName)
+	}
+
 	if replaceFile {
-		err := FileSave(saveFilePath, migration)
+		err := FileSave(saveFilePath+saveFileName, migration)
 		if err == nil {
-			log.WithField("File", saveFilePath).Println("Migration created")
+			log.WithField("File", saveFilePath+saveFileName).Println("Migration created")
 		}
 	}
 }
 
-func GenerateGeneralFilesIfNotExist(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct, replaceFile bool) {
+func GenerateGeneralFilesIfNotExist(packageInfo entity.PackageStruct, serviceName string, listOfStruct []entity.Struct, isGenerateTestFile bool, replaceFile bool) {
+	log.Println("\033[35m", "\n\nGeneral Files file", "\033[0m")
 
 	type GeneralFile struct {
 		FileName string
@@ -204,6 +245,10 @@ func GenerateGeneralFilesIfNotExist(packageInfo entity.PackageStruct, serviceNam
 		{"healthcheck/healthcheck.go", false},
 	}
 
+	if isGenerateTestFile {
+		listFiles = append(listFiles, GeneralFile{"service/service_test.go", true})
+		listFiles = append(listFiles, GeneralFile{"envopt_test.json", false})
+	}
 	dbList := []string{}
 	for _, l := range listOfStruct {
 		if l.Type == entity.TypeMain {
@@ -237,6 +282,8 @@ func GenerateGeneralFilesIfNotExist(packageInfo entity.PackageStruct, serviceNam
 }
 
 func GenerateGatewayFiles(packageInfo entity.PackageStruct, protoInterface entity.ProtoInterface, serviceName string, replaceFile bool) {
+	log.Println("\033[35m", "\n\nGateway file", "\033[0m")
+
 	var err error
 
 	servicePath := filepath.FromSlash("./../gateway-front-admin")
@@ -245,16 +292,15 @@ func GenerateGatewayFiles(packageInfo entity.PackageStruct, protoInterface entit
 		// Generate file
 
 		code := ""
-		name, action := pi.NameInterface()
-
-		saveFilePath := servicePath + "/service/" + strcase.ToSnake(name) + "_" + strcase.ToSnake(action) + ".go"
+		nameInterface := pi.NameInterface(&protoInterface)
+		saveFilePath := servicePath + "/service/" + nameInterface.FileName() + "_test.go"
 
 		// Если не удалось определить экшн то переходим к следующему методу
-		if len(action) == 0 {
+		if len(nameInterface.Action) == 0 {
 			continue
 		}
 
-		code, err = generators.GenerateGatewayCode(pi, packageInfo, action)
+		code, err = generators.GenerateGatewayCode(pi, packageInfo, nameInterface)
 
 		if err != nil {
 			log.Error(err)
@@ -264,7 +310,7 @@ func GenerateGatewayFiles(packageInfo entity.PackageStruct, protoInterface entit
 			err := FileSave(saveFilePath, code)
 
 			if err == nil {
-				log.WithField("File", saveFilePath).Println("Service file created ", strcase.ToSnake(name)+"_"+strcase.ToSnake(action)+".go")
+				log.WithField("File", saveFilePath).Println("Service file created ", nameInterface.FileName()+".go")
 			}
 		}
 

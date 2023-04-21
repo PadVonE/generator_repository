@@ -5,16 +5,14 @@ import (
 	"generator/entity"
 	"github.com/iancoleman/strcase"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 )
 
+func GenerateTestCreateCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct, nameInterface entity.NameInterface) (code string, err error) {
 
-func GenerateTestCreateCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct) (code string, err error) {
-	
 	path := filepath.FromSlash("./generators/template/test/_create_test.txt")
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
 		wd, err := os.Getwd()
@@ -24,7 +22,7 @@ func GenerateTestCreateCode(strc entity.ProtoInterfaceMethod, packageStruct enti
 		path = filepath.Join(wd, path)
 	}
 
-	dat, err := ioutil.ReadFile(path)
+	dat, err := os.ReadFile(path)
 	if err != nil {
 		log.Println(err)
 		return
@@ -33,19 +31,16 @@ func GenerateTestCreateCode(strc entity.ProtoInterfaceMethod, packageStruct enti
 
 	t := template.Must(template.New("const-list").Parse(source))
 
-	listRequestElement,imports := generateCreateRequestElement(strc.RequestStruct)
-
-
-	name,_ := strc.NameInterface()
+	listRequestElement, imports := generateCreateRequestElement(strc.RequestStruct)
 
 	data := DataTest{
-		Name:           name,
-		NameInSnake:    strcase.ToSnake(name),
+		Name:           nameInterface.GetMethodName(),
+		NameInSnake:    strcase.ToSnake(nameInterface.Name),
 		Imports:        imports,
 		PackageStruct:  packageStruct,
 		FinishedStruct: listRequestElement,
-		TestList1:      generateEqualList("create"+name+"Request","response",strc.RequestStruct),
-		TestList2:      generateEqualList("response","get",strc.ResponseStruct),
+		TestList1:      generateEqualList("create"+nameInterface.Name+"Request", "response", strc.RequestStruct),
+		TestList2:      generateEqualList("response", "protoGet", strc.ResponseStruct),
 	}
 
 	var tpl bytes.Buffer
@@ -55,21 +50,20 @@ func GenerateTestCreateCode(strc entity.ProtoInterfaceMethod, packageStruct enti
 
 	code = tpl.String()
 
-
 	return
 }
 
-func generateCreateRequestElement(p entity.Struct) (code string,imports string) {
+func generateCreateRequestElement(p entity.Struct) (code string, imports string) {
 
 	code = ""
 	imports = ""
 
-	for i, element := range	p.Rows{
+	for i, element := range p.Rows {
 
-		generatedCode,generatedImport := generateRowRequest(element.Name,element.Type,i)
+		generatedCode, generatedImport := generateTestRowRequest(element.Name, element.Type, i, true)
 
-		code+=generatedCode
-		if !strings.Contains(imports, generatedImport){
+		code += generatedCode
+		if !strings.Contains(imports, generatedImport) {
 			imports += generatedImport
 		}
 
@@ -77,4 +71,3 @@ func generateCreateRequestElement(p entity.Struct) (code string,imports string) 
 
 	return
 }
-

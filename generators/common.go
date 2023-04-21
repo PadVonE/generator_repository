@@ -10,17 +10,20 @@ import (
 )
 
 type Data struct {
-	Name           string
-	StructRows     string
-	NameInSnake    string
-	NameInCamel    string
-	RepositoryName string
-	ToProto        string
-	CreateProtoTo  string
-	UpdateProtoTo  string
-	ListFilter     string
-	Imports        string
-	PackageStruct  entity.PackageStruct
+	Name                    string
+	StructRows              string
+	NameInSnake             string
+	NameInCamel             string
+	RepositoryName          string
+	ToProto                 string
+	CreateProtoTo           string
+	UpdateProtoTo           string
+	ListFilter              string
+	Imports                 string
+	GatewayVariables        string
+	gatewayVariablesRequest string
+	GatewayFilter           string
+	PackageStruct           entity.PackageStruct
 }
 
 type DataGeneralGenerator struct {
@@ -51,9 +54,11 @@ func generateEqualList(s1 string, s2 string, p entity.Struct) (code string) {
 
 	code = ""
 	for _, element := range p.Rows {
-		if 	element.Name=="CreatedAt" ||
-			element.Name=="UpdatedAt" ||
-			element.Name=="PublicDate" {
+
+		// Удаляем эти элементы так как они сгенерированы автоматически
+		if element.Name == "CreatedAt" ||
+			element.Name == "UpdatedAt" ||
+			element.Name == "PublicDate" {
 			continue
 		}
 		code += "\ts.Equal(" + s1 + "." + element.Name + ", " + s2 + "." + element.Name + ")"
@@ -63,7 +68,7 @@ func generateEqualList(s1 string, s2 string, p entity.Struct) (code string) {
 	return
 }
 
-func generateRowRequest(elementName string, elementType string, inc int) (codeEntity string, imports string) {
+func generateTestRowRequest(elementName string, elementType string, inc int, isProto bool) (codeEntity string, imports string) {
 
 	codeEntity = ""
 
@@ -83,19 +88,31 @@ func generateRowRequest(elementName string, elementType string, inc int) (codeEn
 			boolString = "true"
 		}
 		codeEntity += "\t\t" + elementName + ":" + boolString + ",\n"
-	case "*timestamp.Timestamp":
 	case "*timestamppb.Timestamp":
 
+		if isProto {
+			imports += "\t\"time\"\n"
+			imports += "\t\"google.golang.org/protobuf/types/known/timestamppb\"\n"
+			codeEntity += "\t\t" + elementName + ":timestamppb.New(time.Now().UTC()),\n"
+			break
+		}
+
 		imports += "\t\"time\"\n"
-		codeEntity += "\t\t" + elementName + ":time.Now(),\n"
+		codeEntity += "\t\t" + elementName + ":time.Now().UTC(),\n"
+
 	case "[]byte":
 		imports += "\t\"github.com/google/uuid\"\n"
 		codeEntity += "\t\t" + elementName + ":[]byte(uuid.New().String()),\n"
+	case "[]string":
+		imports += "\t\"github.com/google/uuid\"\n"
+		codeEntity += "\t\t" + elementName + ":[]string{uuid.New().String(),uuid.New().String(),uuid.New().String()},\n"
 	default:
-		if strings.Contains(elementType, "Type") || strings.Contains(elementType, "Status"){
+		if strings.Contains(elementType, "Type") || strings.Contains(elementType, "Status") {
 			codeEntity += "\t\t" + elementName + ":" + strconv.Itoa(inc+1) + ",\n"
 			break
 		}
+
+		codeEntity += "\t\t" + elementName + ":" + strconv.Itoa(inc+1) + ",\n"
 
 		log.Warn("Type: " + elementType + " not implemented (generateRowRequest)")
 

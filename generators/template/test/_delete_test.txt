@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+    "errors"
+	"gorm.io/gorm"
 	"github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
 	"{{ .PackageStruct.PackageNameForImport}}/entity"
 {{ .Imports}}
@@ -14,7 +16,7 @@ func (s *SuiteTest) TestDelete{{ .Name}}() {
 
 
 	for _, element := range contents {
-		_, err := s.Service.DB.Insert(element)
+	    err := s.Service.DB.Create(&element).Error
 		if !s.NoError(err) {
 			return
 		}
@@ -31,21 +33,24 @@ func (s *SuiteTest) TestDelete{{ .Name}}() {
 
 
 	get := entity.{{ .Name}}{}
-	exist, err := s.Service.DB.ID(contents[0].Id).Get(&get)
-	if !s.NoError(err) {
-		return
-	}
-	if !s.False(exist) {
+
+    query := s.Service.DB.Model(&get)
+    query = query.Where("id = ?", contents[0].Id)
+    err = query.Take(&get).Error
+
+	if s.True(errors.Is(err, gorm.ErrRecordNotFound)) {
 		return
 	}
 
-    get = entity.{{ .Name}}{}
-    exist, err = s.Service.DB.ID(contents[1].Id).Get(&get)
-    if !s.NoError(err) {
-    	return
-    }
-    if !s.True(exist) {
-    	return
-    }
+
+   get = entity.{{ .Name}}{}
+
+   query = s.Service.DB.Model(&get)
+   query = query.Where("id = ?", contents[1].Id)
+   err = query.Take(&get).Error
+
+	if s.True(errors.Is(err, gorm.ErrRecordNotFound)) {
+		return
+	}
 {{.TestList2}}
 }

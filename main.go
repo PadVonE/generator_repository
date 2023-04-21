@@ -9,8 +9,7 @@ import (
 	"github.com/2q4t-plutus/envopt"
 	"github.com/google/go-github/v39/github"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/oauth2"
-	"io/ioutil"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -86,12 +85,12 @@ func old() {
 		usecase.GenerateTestFiles(packageInfo, funcList, ServiceName, ReplaceFile)
 	}
 
-	// Генерируем файлы тестов
+	// Генерируем файлы гетвей
 	if IsGenerateGatewayFile {
 		usecase.GenerateGatewayFiles(packageInfo, funcList, ServiceName, ReplaceFile)
 	}
 
-	usecase.GenerateGeneralFilesIfNotExist(packageInfo, ServiceName, listOfStruct, ReplaceFile)
+	usecase.GenerateGeneralFilesIfNotExist(packageInfo, ServiceName, listOfStruct, IsGenerateTestFile, ReplaceFile)
 
 	// Выравнивание сгенеренного кода
 	servicePath := filepath.FromSlash("./../" + ServiceName + "/")
@@ -116,7 +115,7 @@ func CloneRepository() (clonePath string) {
 
 func ParseInfoFromProto(clonePath string) (packageInfo entity.PackageStruct, listOfStruct []entity.Struct, funcList entity.ProtoInterface) {
 
-	files, err := ioutil.ReadDir(clonePath)
+	files, err := os.ReadDir(clonePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -127,7 +126,7 @@ func ParseInfoFromProto(clonePath string) (packageInfo entity.PackageStruct, lis
 	for _, file := range files {
 
 		fileAddress := clonePath + "/" + file.Name()
-		if strings.HasSuffix(file.Name(), "repository.pb.go") {
+		if strings.HasSuffix(file.Name(), "repository.pb.go") || strings.HasSuffix(file.Name(), "repository_grpc.pb.go") {
 			funcFile = fileAddress
 			continue
 		}
@@ -143,7 +142,7 @@ func ParseInfoFromProto(clonePath string) (packageInfo entity.PackageStruct, lis
 
 	for _, file := range protoFiles {
 
-		dat, err := ioutil.ReadFile(file)
+		dat, err := os.ReadFile(file)
 		if err != nil {
 			panic(err)
 		}
@@ -151,12 +150,11 @@ func ParseInfoFromProto(clonePath string) (packageInfo entity.PackageStruct, lis
 		listOfStruct = append(listOfStruct, usecase.ParseProtobufStruct(sourceFile)...)
 	}
 
-	dat, err := ioutil.ReadFile(funcFile)
+	dat, err := os.ReadFile(funcFile)
 	if err != nil {
 		panic(err)
 	}
 	source := string(dat)
-
 	funcList = usecase.ParseProtobufFunc(source)
 
 	return
