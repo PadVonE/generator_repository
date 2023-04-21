@@ -10,6 +10,7 @@ type Organization struct {
 	UpdatedAt  time.Time
 	LastUpdate time.Time
 	Name       string
+	LocalPath  string
 }
 
 func (card *Organization) TableName() string {

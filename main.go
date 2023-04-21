@@ -9,7 +9,7 @@ import (
 	"github.com/2q4t-plutus/envopt"
 	"github.com/google/go-github/v39/github"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+	"golang.org/x/oauth2"
 	"os"
 	"os/exec"
 	"path/filepath"

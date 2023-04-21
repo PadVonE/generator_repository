@@ -5,6 +5,11 @@ import (
 	"time"
 )
 
+const PROJECT_TYPE_NO_SET = 0
+const PROJECT_TYPE_REPOSITORY = 1
+const PROJECT_TYPE_USECASE = 2
+const PROJECT_TYPE_SPECIFICATION = 3
+
 type Project struct {
 	Id               int32
 	CreatedAt        time.Time `gorm:"->;<-:create"`
@@ -13,7 +18,7 @@ type Project struct {
 	Type             int32
 	OrganizationId   int32
 	Name             string
-	DirPath          string
+	LocalPath        string
 	GithubUrl        string
 	LastCommitName   string
 	LastCommitTime   time.Time
@@ -31,17 +36,17 @@ func (project *Project) TableName() string {
 func GetTypeProjectByName(name string) int32 {
 
 	if strings.HasSuffix(name, "repository") {
-		return 1
+		return PROJECT_TYPE_REPOSITORY
 	}
 
 	if strings.HasSuffix(name, "usecase") {
-		return 2
+		return PROJECT_TYPE_USECASE
 	}
 
 	if strings.HasPrefix(name, "specification") {
-		return 3
+		return PROJECT_TYPE_SPECIFICATION
 	}
 
-	return 0
+	return PROJECT_TYPE_NO_SET
 
 }

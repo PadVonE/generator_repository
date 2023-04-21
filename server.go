@@ -25,9 +25,14 @@ func handler(s *service.Service) http.Handler {
 	front.GET("/", s.Index)
 
 	api := handler.Group("/api")
-
+	// Создание организации и подтягивание проектов
 	api.GET("/create-organisation", s.CreateOrganisationApi)
+
+	// Создание структуры для проекта и клонирование прото и спек
+	api.GET("/generate-organisation-struct", s.CreateOrganisationStructApi)
+
 	api.GET("/clone-repository", s.CloneRepositoryApi)
+	api.GET("/generate-path-project", s.GeneratePathProjectRepositoryApi)
 
 	return handler
 

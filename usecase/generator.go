@@ -313,26 +313,9 @@ func GenerateGatewayFiles(packageInfo entity.PackageStruct, protoInterface entit
 				log.WithField("File", saveFilePath).Println("Service file created ", nameInterface.FileName()+".go")
 			}
 		}
-
 	}
 }
 
 func GeneratePathProject(serviceName string) {
-	servicePath := filepath.FromSlash("./../" + serviceName)
-	pathList := []string{
-		"entity",
-		"migrations",
-		"service",
-		"healthcheck",
-	}
-
-	for _, path := range pathList {
-
-		p := servicePath + "/" + path
-
-		if _, err := os.Stat(p); os.IsNotExist(err) {
-			os.Mkdir(p, os.ModePerm)
-		}
-	}
 
 }

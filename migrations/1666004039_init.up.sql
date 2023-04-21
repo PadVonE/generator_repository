@@ -5,7 +5,8 @@ create table if not exists organization
     created_at  timestamp not null default CURRENT_TIMESTAMP,
     updated_at  timestamp not null default CURRENT_TIMESTAMP,
     last_update timestamp not null default CURRENT_TIMESTAMP,
-    name        varchar   not null default ''
+    name        varchar   not null default '',
+    local_path  varchar   not null default ''
 );
 
 
@@ -20,7 +21,7 @@ create table if not exists project
     type               integer   not null default 0,
     organization_id    integer   not null default 0,
     name               varchar   not null default '',
-    dir_path           varchar   not null default '',
+    local_path         varchar   not null default '',
     github_url         varchar   not null default '',
 
     last_commit_name   varchar   not null default '',

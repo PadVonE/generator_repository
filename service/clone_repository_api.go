@@ -10,6 +10,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -32,11 +33,18 @@ func (s *Service) CloneRepositoryApi(ctx *gin.Context) {
 		return
 	}
 
-	clonePath := usecase.CloningRepository(project.GithubUrl,
+	clonePath := filepath.FromSlash("./tmp/" + project.Name)
+
+	err = usecase.CloningRepository(project.GithubUrl,
+		clonePath,
 		&http.BasicAuth{
 			Username: envopt.GetEnv("GITHUB_USER"),
 			Password: envopt.GetEnv("GITHUB_TOKEN"),
 		})
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
 
 	// Парсим информацию из прото файлов в нужные нам структуры
 	projectComponents := ParseInfoFromProto(clonePath)
@@ -80,7 +88,7 @@ func ParseInfoFromProto(clonePath string) (projectComponents entity.ProjectCompo
 	for _, file := range files {
 
 		fileAddress := clonePath + "/" + file.Name()
-		if strings.HasSuffix(file.Name(), "repository.pb.go") {
+		if strings.HasSuffix(file.Name(), "repository.pb.go") || strings.HasSuffix(file.Name(), "repository_grpc.pb.go") {
 			funcFile = fileAddress
 			continue
 		}

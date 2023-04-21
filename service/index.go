@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"generator/entity"
-	"github.com/2q4t-plutus/envopt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v39/github"
 	"time"
@@ -38,8 +37,7 @@ func (s *Service) Index(ctx *gin.Context) {
 		return
 	}
 
-	token := envopt.GetEnv("GITHUB_TOKEN")
-	repos, err := s.getOrganizationRepositories(organization.Name, token)
+	repos, err := s.getOrganizationRepositories(organization.Name)
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		return
@@ -53,7 +51,7 @@ func (s *Service) Index(ctx *gin.Context) {
 				hasDb = true
 				if project.PushedAt != repo.GetPushedAt().UTC() {
 
-					release, _ := s.getLastRelease(organization.Name, *repo.Name, token)
+					release, _ := s.getLastRelease(organization.Name, *repo.Name)
 
 					if release.GetTagName() != project.ReleaseTag {
 						projects[i].NewTag = release.GetTagName()
@@ -66,7 +64,7 @@ func (s *Service) Index(ctx *gin.Context) {
 			project := entity.Project{
 				OrganizationId: organization.Id,
 				Name:           *repo.Name,
-				DirPath:        *repo.FullName,
+				LocalPath:      *repo.FullName,
 				Type:           1,
 			}
 			projects = append([]entity.Project{project}, projects...)
@@ -88,7 +86,7 @@ func (s *Service) Index(ctx *gin.Context) {
 	ctx.Next()
 }
 
-func (s *Service) getOrganizationRepositories(organization, token string) ([]*github.Repository, error) {
+func (s *Service) getOrganizationRepositories(organization string) ([]*github.Repository, error) {
 	ctx := context.Background()
 
 	opt := &github.RepositoryListByOrgOptions{
@@ -111,7 +109,7 @@ func (s *Service) getOrganizationRepositories(organization, token string) ([]*gi
 	return allRepos, nil
 }
 
-func (s *Service) getLastCommit(owner, repoName, accessToken string) (*github.RepositoryCommit, error) {
+func (s *Service) getLastCommit(owner, repoName string) (*github.RepositoryCommit, error) {
 	ctx := context.Background()
 
 	// Получение списка коммитов с лимитом 1.
@@ -129,7 +127,7 @@ func (s *Service) getLastCommit(owner, repoName, accessToken string) (*github.Re
 	return commits[0], nil
 }
 
-func (s *Service) getLastRelease(owner, repoName, accessToken string) (*github.RepositoryRelease, error) {
+func (s *Service) getLastRelease(owner, repoName string) (*github.RepositoryRelease, error) {
 	ctx := context.Background()
 
 	// Получение списка релизов с лимитом 1.

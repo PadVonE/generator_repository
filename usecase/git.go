@@ -5,20 +5,12 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
-	"io/ioutil"
-	"strings"
-
 	"os"
-	"path/filepath"
 )
 
-func CloningRepository(gitRepository string, basicAuth *http.BasicAuth) (clonePath string) {
+func CloningRepository(gitRepository string, clonePath string, basicAuth *http.BasicAuth) error {
 
-	repositoryNameSpliced := strings.Split(gitRepository, "/")
-
-	clonePath = filepath.FromSlash("./tmp/"+repositoryNameSpliced[len(repositoryNameSpliced)-1])
-
-	RemoveContents(clonePath)
+	_ = RemoveContents(clonePath)
 
 	_, err := git.PlainClone(clonePath, false, &git.CloneOptions{
 		URL:      gitRepository,
@@ -27,19 +19,18 @@ func CloningRepository(gitRepository string, basicAuth *http.BasicAuth) (clonePa
 	})
 
 	if err != nil {
-
-		log.Fatal(err.Error())
+		return err
 	}
 
 	log.WithFields(log.Fields{
 		"Status": "Complete",
 	}).Info("Cloning  repository")
 
-	return
+	return nil
 }
 
-func GetRepositoryInfo(funcFile string) (pack entity.PackageStruct)  {
-	dat, err := ioutil.ReadFile(funcFile)
+func GetRepositoryInfo(funcFile string) (pack entity.PackageStruct) {
+	dat, err := os.ReadFile(funcFile)
 	if err != nil {
 		panic(err)
 	}
