@@ -1,0 +1,13 @@
+{{ define "layout.tmpl" }}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ block "title" . }}Default Title{{ end }}</title>
+</head>
+<body>
+<div id="content">
+    {{ block "Content" . }}Default Content{{ end }}
+</div>
+</body>
+</html>
+{{ end }}

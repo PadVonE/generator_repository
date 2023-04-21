@@ -1,17 +1,22 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"generator/entity"
+	"generator/service"
 	"generator/usecase"
+	"github.com/2q4t-plutus/envopt"
+	"github.com/google/go-github/v39/github"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+	"golang.org/x/oauth2"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
-
 
 func init() {
 	// Log as JSON instead of the default ASCII formatter.
@@ -26,6 +31,26 @@ func init() {
 }
 
 func main() {
+	//var err error
+	envopt.Validate("envopt.json")
+
+	openbrowser("http://localhost:8090/")
+
+	s := &service.Service{}
+
+	s.DB = DbConnection()
+
+	// Создание клиента GitHub с токеном доступа.
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: GitHubToken})
+	tc := oauth2.NewClient(context.Background(), ts)
+	s.GitClient = github.NewClient(tc)
+
+	if err := StartWebServer(s); err != nil {
+		log.Printf("failure init server %s", err)
+	}
+}
+
+func old() {
 
 	// Клонируем репозиторий
 	clonePath := CloneRepository()
@@ -43,33 +68,33 @@ func main() {
 
 	// Генерируем файлы со структурами
 	if IsGenerateEntity {
-		usecase.GenerateEntity(packageInfo, ServiceName, listOfStruct,ReplaceFile)
+		usecase.GenerateEntity(packageInfo, ServiceName, listOfStruct, ReplaceFile)
 	}
 
 	// Генерируем файлы Миграции
 	if IsGenerateMigrationFile {
-		usecase.GenerateMigrationFile(packageInfo, ServiceName, listOfStruct,ReplaceFile)
+		usecase.GenerateMigrationFile(packageInfo, ServiceName, listOfStruct, ReplaceFile)
 	}
 
 	// Генерируем файлы реализаций методов
 	if IsGenerateServiceFile {
-		usecase.GenerateServiceFiles(packageInfo, funcList, ServiceName,ReplaceFile)
+		usecase.GenerateServiceFiles(packageInfo, funcList, ServiceName, ReplaceFile)
 	}
 
 	// Генерируем файлы тестов
 	if IsGenerateTestFile {
-		usecase.GenerateTestFiles(packageInfo, funcList, ServiceName,ReplaceFile)
+		usecase.GenerateTestFiles(packageInfo, funcList, ServiceName, ReplaceFile)
 	}
 
 	// Генерируем файлы тестов
 	if IsGenerateGatewayFile {
-		usecase.GenerateGatewayFiles(packageInfo, funcList, ServiceName,ReplaceFile)
+		usecase.GenerateGatewayFiles(packageInfo, funcList, ServiceName, ReplaceFile)
 	}
 
-	usecase.GenerateGeneralFilesIfNotExist(packageInfo, ServiceName, listOfStruct,ReplaceFile)
+	usecase.GenerateGeneralFilesIfNotExist(packageInfo, ServiceName, listOfStruct, ReplaceFile)
 
 	// Выравнивание сгенеренного кода
-	servicePath := filepath.FromSlash("./../" + ServiceName+"/")
+	servicePath := filepath.FromSlash("./../" + ServiceName + "/")
 	cmd := exec.Command("gofmt", "-s", "-w", servicePath)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -81,11 +106,6 @@ func main() {
 }
 
 func CloneRepository() (clonePath string) {
-	clonePath = usecase.CloningRepository(GitRepository,
-		&http.BasicAuth{
-			Username: GitHubUsername,
-			Password: GitHubToken,
-		})
 
 	return
 }
@@ -158,5 +178,23 @@ func GroupStructWithMethod(funcList *entity.ProtoInterface, listOfStruct []entit
 				funcList.Methods[i].BasicStruct = los
 			}
 		}
+	}
+}
+
+func openbrowser(url string) {
+	var err error
+
+	switch runtime.GOOS {
+	case "linux":
+		err = exec.Command("xdg-open", url).Start()
+	case "windows":
+		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		err = exec.Command("open", url).Start()
+	default:
+		err = fmt.Errorf("unsupported platform")
+	}
+	if err != nil {
+		log.Fatal(err)
 	}
 }

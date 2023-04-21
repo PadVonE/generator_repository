@@ -1,0 +1,24 @@
+/* Move down content because we have a fixed navbar that is 3.5rem tall */
+body {
+    padding-top: 3.5rem;
+}
+
+td {
+   font-size: 14px;
+}
+
+
+.table-color-0 {
+    background-color: #eee;
+    color: #aaa;
+}
+
+.table-color-1 {
+   background-color: #B2D8D8;
+}
+.table-color-2 {
+   background-color: #D8CCE5;
+}
+.table-color-3 {
+   background-color: #E5E0CC;
+}

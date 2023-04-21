@@ -1,0 +1,78 @@
+{{ define "index" }}
+{{ template "_header" .}}
+<div class="jumbotron jumbotron-fluid">
+    <div class="container">
+        <!-- Example row of columns -->
+        <div class="row">
+
+
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Organisation <small>{{ .Organisation.Name }}</small></h2>
+
+                        <div class="clearfix"></div>
+                    </div>
+
+                    <div class="x_content">
+
+                        <p>Add class <code>bulk_action</code> to table for bulk actions options on row select</p>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped jambo_table bulk_action">
+                                <thead>
+                                <tr class="headings">
+                                    <th>
+                                        <input type="checkbox" id="check-all" class="flat">
+                                    </th>
+                                    <th class="column-title">Id</th>
+                                    <th class="column-title">Name</th>
+                                    <th class="column-title">Type</th>
+                                    <th class="column-title">LastCommitDate</th>
+                                    <th class="column-title">LastCommitAuthor</th>
+                                    <th class="column-title">LastReleaseDate</th>
+                                    <th class="column-title">LatestReleaseTag</th>
+                                    <th class="column-title no-link last"><span class="nobr">LastReleaseAuthor</span>
+                                    </th>
+
+                                </tr>
+                                </thead>
+
+                                <tbody>
+                                {{ range .Projects }}
+                                <tr class="even pointer table-color-{{ .Type }}">
+                                    <td class="a-center ">
+                                        <input type="checkbox" class="flat" name="table_records">
+                                    </td>
+                                    <td>{{ .Id }}</td>
+                                    <td>{{ .Name }}<div><span class="badge badge-primary">{{ .DirPath}}</span></div></td>
+                                    <td>{{ .Type }}</td>
+                                    <td><span class="badge badge-dark">{{ .LastCommitAuthor }}</span> {{ .LastCommitName }} </td>
+                                    <td>{{ .LastCommitTime | timeAgo }}</td>
+                                    <td>
+                                        <span class="badge badge-secondary">{{ .ReleaseTag }}</span>
+                                        {{ if .NewTag }}
+                                        ->
+                                        <span class="badge badge-success">{{ .NewTag }}</span>
+                                        {{ end }}
+                                    </td>
+                                    <td>{{ .CreatedAt.Format "02.01.2006 15:04:05" }}</td>
+                                    <td class=" last">Действия</td>
+
+                                </tr>
+                                {{ end }}
+                                </tbody>
+                            </table>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{{ template "_footer" .}}
+{{ end }}

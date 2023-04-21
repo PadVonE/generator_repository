@@ -1,0 +1,14 @@
+[
+  {"key": "TZ", "critical": true, "default": "UTC"},
+
+  {"key": "GITHUB_USER", "critical": true, "default": ""},
+  {"key": "GITHUB_TOKEN", "critical": true, "default": ""},
+
+  {"key": "POSTGRES_HOST", "critical": true, "default": "127.0.0.1"},
+  {"key": "POSTGRES_PORT", "critical": true, "default": "5569"},
+  {"key": "POSTGRES_DB_NAME", "critical": true, "default": "generator"},
+  {"key": "POSTGRES_USER", "critical": true, "default": "generator"},
+  {"key": "POSTGRES_PASSWORD", "critical": true, "default": "generator"},
+  {"key": "POSTGRES_SSL_MODE", "critical": true, "default": "disable"}
+]
+
