@@ -31,8 +31,21 @@ func handler(s *service.Service) http.Handler {
 	// Создание структуры для проекта и клонирование прото и спек
 	api.GET("/generate-organisation-struct", s.CreateOrganisationStructApi)
 
+	// Клонирование репозитория и переработка его в струкуру проекта для дальнейшей обработки
 	api.GET("/clone-repository", s.CloneRepositoryApi)
+
+	// создание структуры проекта папок для репозитория
 	api.GET("/generate-path-project", s.GeneratePathProjectRepositoryApi)
+
+	// Генератор файлов entity
+	api.GET("/generate-entity", s.GenerateEntityApi)
+
+	// Генератор файлов migration
+	api.GET("/generate-migration", s.GenerateMigrationApi)
+
+	api.GET("/update-go", s.UpdateGoPackagesInDir)
+
+	//
 
 	return handler
 

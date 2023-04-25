@@ -48,7 +48,13 @@
                                     <td>{{ .Name }}<div><span class="badge badge-primary">{{ .LocalPath}}</span></div></td>
                                     <td>{{ .Type }}</td>
                                     <td><span class="badge badge-dark">{{ .LastCommitAuthor }}</span> {{ .LastCommitName }} </td>
-                                    <td>{{ .LastCommitTime | timeAgo }}</td>
+                                    <td>{{ .LastCommitTime | timeAgo }}
+
+                                        {{ if .NewCommitName }}
+                                            <span class="badge badge-primary">{{ .NewCommitName}}</span>
+                                            <span class="badge badge-primary">{{ .NewCommitDate | timeAgo }}</span>
+                                        {{ end }}
+                                    </td>
                                     <td>
                                         <span class="badge badge-secondary">{{ .ReleaseTag }}</span>
                                         {{ if .NewTag }}

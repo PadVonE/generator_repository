@@ -68,6 +68,7 @@ func (s *Service) CloneRepositoryApi(ctx *gin.Context) {
 		return
 	}
 
+	project.LastStructure = string(structure)
 	err = s.DB.Save(&project).Error
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)

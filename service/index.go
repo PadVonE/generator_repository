@@ -52,10 +52,14 @@ func (s *Service) Index(ctx *gin.Context) {
 				if project.PushedAt != repo.GetPushedAt().UTC() {
 
 					release, _ := s.getLastRelease(organization.Name, *repo.Name)
+					commit, _ := s.getLastCommit(organization.Name, *repo.Name)
 
 					if release.GetTagName() != project.ReleaseTag {
 						projects[i].NewTag = release.GetTagName()
 					}
+
+					projects[i].NewCommitName = commit.GetCommit().GetMessage()
+					projects[i].NewCommitDate = commit.Commit.GetAuthor().GetDate()
 				}
 			}
 		}

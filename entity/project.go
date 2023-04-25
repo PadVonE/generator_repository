@@ -26,7 +26,9 @@ type Project struct {
 	ReleaseTag       string
 	LastStructure    string
 
-	NewTag string `gorm:"-"`
+	NewTag        string    `gorm:"-"`
+	NewCommitName string    `gorm:"-"`
+	NewCommitDate time.Time `gorm:"-"`
 }
 
 func (project *Project) TableName() string {
