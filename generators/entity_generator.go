@@ -86,6 +86,15 @@ func generateRow(row entity.Struct) (code string, imports string) {
 		switch field.Type {
 		case "*timestamp.Timestamp":
 		case "*timestamppb.Timestamp":
+			if field.Name == "DeletedAt" {
+				if countImports["gorm"] == 0 {
+					imports += "\t\"gorm.io/gorm\""
+				}
+				countImports["gorm"]++
+				fType = "gorm.DeletedAt"
+				break
+			}
+
 			fType = "time.Time"
 		case "[]string":
 			if countImports["[]string"] == 0 {
@@ -114,14 +123,11 @@ func ToProto(strc entity.Struct, repositoryName string) (code string) {
 		code += "\t\t"
 		switch row.Type {
 		case "*timestamp.Timestamp", "*timestamppb.Timestamp":
-			//switch row.Name {
-			//case "CreatedAt":
-			//	code += "CreatedAt:  timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".CreatedAt),\n"
-			//case "UpdatedAt":
-			//	code += "UpdatedAt:  timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".UpdatedAt),\n"
-			//case "PublicDate":
-			//	code += "PublicDate:  timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".PublicDate),\n"
-			//}
+			switch row.Name {
+			case "DeletedAt":
+				code += "DeletedAt:  timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + ".DeletedAt.Time),\n"
+				continue
+			}
 
 			code += "" + row.Name + ":  timestamppb.New(" + strcase.ToLowerCamel(strc.Name) + "." + row.Name + "),\n"
 

@@ -1,0 +1,242 @@
+{{ define "organization_list" }}
+{{ template "_header" .}}
+
+
+
+<div class="jumbotron jumbotron-fluid">
+    <div class="container">
+        <!-- Example row of columns -->
+        <div class="row">
+
+
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Organization <small>{{ .Organization.Name }}</small></h2>
+
+                        <div class="clearfix"></div>
+                    </div>
+
+
+                    <div class="x_content">
+
+                        <p>Add class <code>bulk_action</code> to table for bulk actions options on row select</p>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped jambo_table bulk_action">
+                                <thead>
+                                <tr class="headings">
+                                    <th>
+                                        <input type="checkbox" id="check-all" class="flat">
+                                    </th>
+                                    <th class="column-title">Id</th>
+                                    <th class="column-title">Name</th>
+                                    <th class="column-title">Type</th>
+                                    <th class="column-title">Github Repository</th>
+                                    <th class="column-title">Gitlab Repository</th>
+                                    <th class="column-title">LastReleaseDate</th>
+                                    <th class="column-title">LatestReleaseTag</th>
+                                    <th class="column-title no-link last"><span class="nobr">LastReleaseAuthor</span>
+                                    </th>
+
+                                </tr>
+                                </thead>
+
+                                <tbody>
+                                {{ range .Projects }}
+                                <tr class="even pointer table-color-{{ .Type }}">
+                                    <td class="a-center ">
+                                        <input type="checkbox" class="flat" name="table_records">
+                                    </td>
+                                    <td>{{ .Id }}</td>
+                                    <td>{{ .Name }}<div><span class="badge badge-primary">{{ .LocalPath}}</span></div></td>
+                                    <td>{{ .Type }}</td>
+                                    <td><span class="badge badge-dark">{{ .GithubLastCommitAuthor }}</span> <span class="badge badge-primary">{{ .GithubLastCommitName }}</span>
+                                        {{ .GithubLastCommitTime | timeAgo }}
+
+                                        {{ if .NewCommitName }}
+                                        <br><span class="badge badge-warning">{{ .NewCommitName}}</span> {{ .NewCommitDate | timeAgo }}
+                                        {{ end }}
+                                        <br>
+                                        <span class="badge badge-secondary">{{ .GithubReleaseTag }}</span>
+                                        {{ if .NewTag }}
+                                        ->
+                                        <span class="badge badge-success">{{ .NewTag }}</span>
+                                        {{ end }}
+                                    </td>
+                                    <td><span class="badge badge-dark">{{ .GitlabLastCommitAuthor }}</span> <span class="badge badge-primary">{{ .GitlabLastCommitName }}</span>
+                                        {{ .GitlabLastCommitTime | timeAgo }}
+
+<!--                                        {{ if .NewCommitName }}-->
+<!--                                        <br><span class="badge badge-warning">{{ .NewCommitName}}</span> {{ .NewCommitDate | timeAgo }}-->
+<!--                                        {{ end }}-->
+                                        <br>
+                                        <span class="badge badge-secondary">{{ .GitlabReleaseTag }}</span>
+<!--                                        {{ if .NewTag }}-->
+<!--                                        ->-->
+<!--                                        <span class="badge badge-success">{{ .NewTag }}</span>-->
+<!--                                        {{ end }}-->
+                                    </td>
+                                    <td>
+
+                                    </td>
+                                    <td>{{ .CreatedAt.Format "02.01.2006 15:04:05" }}</td>
+                                    <td class=" last"><div class="btn entity loadData" data-project-id="{{ .Id }}">Entity</div></td>
+
+                                </tr>
+                                <tr><td colspan="100%"><div class="data-projectid-{{ .Id }}"></div></td></tr>
+                                {{ end }}
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade bd-example-modal-xl" id="compareModal" tabindex="-1" role="dialog" aria-labelledby="compareModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="compareModalLabel">Code Comparison</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="container" style="height: 800px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+
+    #container-diff {
+        height: 100%;
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 800px;
+    }
+
+    .actions {
+        height: 2em;
+        display: flex;
+        align-items: center;
+        border-top: 1px solid #aaa;
+        padding: 0.2em;
+        box-sizing: border-box;
+    }
+
+    label {
+        padding-right: 0.3em;
+    }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs/loader.min.js"></script>
+<script>
+
+        function fetchData(projectId) {
+        $.ajax({
+            url: '/api/generate-entity',
+            type: 'GET',
+            dataType: 'json',
+            data: {
+                project_id: projectId
+            },
+            success: function(response) {
+                const filesPreviews = response;
+
+                let content = filesPreviews.map(filesPreview => {
+                    var hash = Math.random().toString(36).substring(7);
+                    return `
+                            <div class="file-preview">
+                                <p>File Path: ${filesPreview.file_path}</p>
+                                <p>Has File: ${filesPreview.has_file}</p>
+                                <p>Has Diff: ${filesPreview.has_diff}</p>
+                                <div style="display: none" class="codeleft ${projectId}-${hash}-left">${filesPreview.old_code}</div>
+                                <div style="display: none" class="coderight ${projectId}-${hash}-right">${filesPreview.new_code}</div>
+                                <button class="btn btn-primary compare-btn" data-toggle="modal" data-target="#compareModal" data-code="${projectId}-${hash}">Compare Code 1</button>
+                            </div>
+                        `;
+                }).join('');
+
+                $('.data-projectid-'+projectId).html(content);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("Error: " + textStatus + "; " + errorThrown);
+            }
+        });
+    }
+
+        $(document).ready(function() {
+        $('.loadData').on('click', function() {
+            const projectId = $(this).data('project-id');
+            fetchData(projectId);
+        });
+    });
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+
+        let compareEditor;
+        let codeLeft;
+        let codeRight;
+
+        const initCompareEditor = (leftCode, rightCode) => {
+            if (compareEditor) {
+                compareEditor.dispose();
+                compareEditor = null;
+            }
+
+            require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs' } });
+            require(['vs/editor/editor.main'], function () {
+                compareEditor = monaco.editor.createDiffEditor(document.getElementById('container'), {
+                    originalEditable: true,
+                    readOnly: false,
+                    language: 'go',
+                });
+
+                compareEditor.setModel({
+                    original: monaco.editor.createModel(leftCode, 'go'),
+                    modified: monaco.editor.createModel(rightCode, 'go'),
+                });
+            });
+        };
+
+
+
+        // Открытие модального окна
+        $(document).on('click','.compare-btn', function () {
+            var classblock = $(this).data("code");
+            console.log(classblock)
+            codeLeft =$("."+classblock+"-left",document).html()
+            codeRight =$("."+classblock+"-right",document).html()
+        });
+
+        // Открытие модального окна
+        $('#compareModal').on('shown.bs.modal', function () {
+            initCompareEditor(codeLeft, codeRight);
+        });
+
+
+        // Закрытие модального окна
+        $('#compareModal').on('hidden.bs.modal', function () {
+            if (compareEditor) {
+                compareEditor.dispose();
+                compareEditor = null;
+            }
+        });
+    });
+</script>
+
+{{ template "_footer" .}}
+{{ end }}

@@ -8,7 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/iancoleman/strcase"
 	log "github.com/sirupsen/logrus"
+	"go/format"
+	"os"
 	"path/filepath"
+	"strings"
 )
 
 func (s *Service) GenerateEntityApi(ctx *gin.Context) {
@@ -60,6 +63,13 @@ func (s *Service) GenerateEntityApi(ctx *gin.Context) {
 				continue
 			}
 
+			byte, err := format.Source([]byte(code))
+			if err != nil {
+				fmt.Println("Error formatting code:", err)
+				return
+			}
+			formattedCodeNewCode := string(byte)
+
 			saveFilePath := servicePath + "/entity/" + strcase.ToSnake(l.Name) + ".go"
 			//if replaceFile {
 			//	err = FileSave(saveFilePath, code)
@@ -67,16 +77,47 @@ func (s *Service) GenerateEntityApi(ctx *gin.Context) {
 			//		log.WithField("File", saveFilePath).Println("Entity created")
 			//	}
 			//}
+			formattedCodeOldCode := ""
+			hasFile := false
+			hasDiff := false
+			if _, err := os.Stat(saveFilePath); err == nil {
+				hasFile = true
+
+				file, err := os.ReadFile(saveFilePath)
+				if err != nil {
+					log.Fatalf("Ошибка при чтении файла: %v", err)
+				}
+
+				byte, err := format.Source(file)
+				if err != nil {
+					fmt.Println("Error formatting code:", err)
+					return
+				}
+
+				formattedCodeOldCode = string(byte)
+
+				if removeSpacesAndNewlines(formattedCodeOldCode) == removeSpacesAndNewlines(formattedCodeNewCode) {
+					hasDiff = true
+				}
+			}
 
 			response = append(response, entity.FilesPreview{
 				FilePath: saveFilePath,
-				NewCode:  code,
-				OldCode:  "",
-				HasFile:  false,
+				NewCode:  formattedCodeNewCode,
+				OldCode:  formattedCodeOldCode,
+				HasFile:  hasFile,
+				HasDiff:  hasDiff,
 			})
 		}
 	}
 
 	ctx.JSON(200, response)
 
+}
+
+func removeSpacesAndNewlines(s string) string {
+	withoutSpaces := strings.ReplaceAll(s, " ", "")
+	withoutEnter := strings.ReplaceAll(withoutSpaces, "\n", "")
+	withoutNewlines := strings.ReplaceAll(withoutEnter, "\t", "")
+	return withoutNewlines
 }

@@ -22,3 +22,31 @@ td {
 .table-color-3 {
    background-color: #E5E0CC;
 }
+
+
+
+
+
+@media (min-width: 576px){
+    .modal-dialog {
+        max-width: 500px;
+        margin: 1.75rem auto;
+    }
+}
+@media (min-width: 992px){
+    .modal-dialog.modal-lg, .modal-dialog.modal-xl {
+        max-width: 800px;
+    }
+}
+@media (min-width: 1200px){
+    .modal-dialog.modal-xl {
+        max-width: 1140px;
+    }
+}
+
+@media (min-width: 1600px){
+    .modal-dialog.modal-xl {
+        max-width: 1480px;
+        min-height: 80%;
+    }
+}

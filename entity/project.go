@@ -11,20 +11,27 @@ const PROJECT_TYPE_USECASE = 2
 const PROJECT_TYPE_SPECIFICATION = 3
 
 type Project struct {
-	Id               int32
-	CreatedAt        time.Time `gorm:"->;<-:create"`
-	UpdatedAt        time.Time
-	PushedAt         time.Time
-	Type             int32
-	OrganizationId   int32
-	Name             string
-	LocalPath        string
-	GithubUrl        string
-	LastCommitName   string
-	LastCommitTime   time.Time
-	LastCommitAuthor string
-	ReleaseTag       string
-	LastStructure    string
+	Id                     int32
+	CreatedAt              time.Time `gorm:"->;<-:create"`
+	UpdatedAt              time.Time
+	PushedAt               time.Time
+	Type                   int32
+	OrganizationId         int32
+	Name                   string
+	LocalPath              string
+	GithubUrl              string
+	GithubLastCommitName   string
+	GithubLastCommitTime   time.Time
+	GithubLastCommitAuthor string
+	GithubReleaseTag       string
+
+	GitlabUrl              string
+	GitlabLastCommitName   string
+	GitlabLastCommitTime   time.Time
+	GitlabLastCommitAuthor string
+	GitlabReleaseTag       string
+
+	LastStructure string
 
 	NewTag        string    `gorm:"-"`
 	NewCommitName string    `gorm:"-"`

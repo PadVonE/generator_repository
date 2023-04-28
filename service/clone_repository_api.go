@@ -21,7 +21,7 @@ func (s *Service) CloneRepositoryApi(ctx *gin.Context) {
 
 	query := s.DB.Model(&project)
 
-	err := query.Where("id = ?", projectID).Order("last_commit_time DESC").Take(&project).Error
+	err := query.Where("id = ?", projectID).Take(&project).Error
 
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)

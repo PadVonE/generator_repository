@@ -29,6 +29,7 @@ func (s *Service) UpdateGoPackagesInDir(ctx *gin.Context) {
 		fmt.Println("Команда go get -u выполнена успешно")
 	}
 }
+
 func updateGoPackagesInDir(path string) error {
 	// Сохраняем текущую рабочую директорию
 	originalDir, err := os.Getwd()

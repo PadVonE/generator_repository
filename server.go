@@ -23,13 +23,15 @@ func handler(s *service.Service) http.Handler {
 	front := handler.Group("/") //s.ResponseHtmlWriter
 
 	front.GET("/", s.Index)
+	front.GET("/organization/create", s.CreateOrganization)
+	front.GET("/organization/:name", s.Organization)
 
 	api := handler.Group("/api")
 	// Создание организации и подтягивание проектов
-	api.GET("/create-organisation", s.CreateOrganisationApi)
+	api.GET("/list-organization", s.ListOrganizationApi)
 
 	// Создание структуры для проекта и клонирование прото и спек
-	api.GET("/generate-organisation-struct", s.CreateOrganisationStructApi)
+	api.POST("/generate-organization-struct", s.CreateOrganizationStructApi)
 
 	// Клонирование репозитория и переработка его в струкуру проекта для дальнейшей обработки
 	api.GET("/clone-repository", s.CloneRepositoryApi)

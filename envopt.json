@@ -3,6 +3,7 @@
 
   {"key": "GITHUB_USER", "critical": true, "default": ""},
   {"key": "GITHUB_TOKEN", "critical": true, "default": ""},
+  {"key": "GITLAB_TOKEN", "critical": true, "default": ""},
 
   {"key": "POSTGRES_HOST", "critical": true, "default": "127.0.0.1"},
   {"key": "POSTGRES_PORT", "critical": true, "default": "5569"},

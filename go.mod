@@ -6,14 +6,12 @@ require (
 	github.com/2q4t-plutus/envopt v1.0.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/golang-migrate/migrate/v4 v4.15.2
-	github.com/google/go-github/v33 v33.0.0
 	github.com/google/go-github/v39 v39.2.0
 	github.com/iancoleman/strcase v0.2.0
 	github.com/lib/pq v1.10.8
 	github.com/sirupsen/logrus v1.9.0
+	github.com/xanzy/go-gitlab v0.15.0
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
-	google.golang.org/grpc v1.45.0
-	google.golang.org/protobuf v1.30.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gorm.io/driver/postgres v1.5.0
 	gorm.io/gorm v1.25.0
@@ -62,7 +60,7 @@ require (
 	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/tools v0.8.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20220314164441-57ef72a4c106 // indirect
+	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/src-d/go-billy.v4 v4.3.2 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

@@ -1,0 +1,93 @@
+{{ define "organization_create" }}
+{{ template "_header" .}}
+<div class="jumbotron jumbotron-fluid">
+    <div class="container">
+        <!-- Example row of columns -->
+        <div class="row">
+
+
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Create Organization</h2>
+
+                        <div class="clearfix"></div>
+                    </div>
+
+                    <div class="x_content">
+
+
+                        <form id="my-form">
+                            <div class="form-group">
+                                <label for="org_name">Organization Name</label>
+                                <input type="text" class="form-control" id="org_name" name="name" placeholder="Organization Name" oninput="updateFields()" >
+                                <small  class="form-text text-muted">Пример: https://github.com/<code>some-organization</code>/proto-some-usecase</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="link_github">Local path for organization</label>
+                                <input type="text" class="form-control" id="path" name="local_path"  placeholder="Link on github organization">
+                                <small  class="form-text text-muted">Пример: <code>{{ .Path}}some-organization</code></small>
+                            </div>
+                            <div class="form-group">
+                                <label for="link_github">Link on github organization</label>
+                                <input type="text" class="form-control" id="link_github" name="github_url"  placeholder="Link on github organization">
+                                <small  class="form-text text-muted">Пример: <code>https://github.com/some-organization</code></small>
+                            </div>
+                            <div class="form-group">
+                                <label for="link_github">Link on gitlab organization</label>
+                                <input type="text" class="form-control" id="link_gitlab" name="gitlab_url"  placeholder="Link on gitlab organization">
+                                <small  class="form-text text-muted">Пример: <code>https://gitlab.com/some-organization/code/</code></small>
+                            </div>
+
+
+
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function updateFields() {
+        const org_name = document.getElementById('org_name').value;
+        document.getElementById('path').value = '{{ .Path}}' + org_name;
+        document.getElementById('link_github').value = 'https://github.com/' + org_name;
+        document.getElementById('link_gitlab').value = 'https://gitlab.com/' + org_name + '/code/';
+    }
+
+    document.getElementById('my-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Предотвратить стандартное поведение отправки формы
+
+        const formData = new FormData(event.target);
+        const jsonData = {};
+
+        // Конвертировать данные формы в JSON
+        for (const [key, value] of formData.entries()) {
+            jsonData[key] = value;
+        }
+
+        // Отправить JSON данные на сервер
+        fetch('/api/generate-organization-struct', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(jsonData),
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    });
+</script>
+{{ template "_footer" .}}
+{{ end }}
