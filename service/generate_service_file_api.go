@@ -7,6 +7,8 @@ import (
 	"generator/generators"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
+	"go/format"
+	"os"
 	"path/filepath"
 )
 
@@ -49,11 +51,43 @@ func (s *Service) GenerateServiceFileApi(ctx *gin.Context) {
 			continue
 		}
 
+		byte, err := format.Source([]byte(code))
+		if err != nil {
+			fmt.Println("Error formatting code:", err)
+			return
+		}
+		formattedCodeNewCode := string(byte)
+
+		formattedCodeOldCode := ""
+		hasFile := false
+		hasDiff := true
+		if _, err := os.Stat(saveFilePath); err == nil {
+			hasFile = true
+
+			file, err := os.ReadFile(saveFilePath)
+			if err != nil {
+				log.Fatalf("Ошибка при чтении файла: %v", err)
+			}
+
+			byte, err := format.Source(file)
+			if err != nil {
+				fmt.Println("Error formatting code:", err)
+				return
+			}
+
+			formattedCodeOldCode = string(byte)
+
+			if CompareStrings(formattedCodeOldCode, formattedCodeNewCode) {
+				hasDiff = false
+			}
+		}
+
 		response = append(response, entity.FilesPreview{
 			FilePath: saveFilePath,
-			NewCode:  code,
-			OldCode:  "",
-			HasFile:  false,
+			NewCode:  formattedCodeNewCode,
+			OldCode:  formattedCodeOldCode,
+			HasFile:  hasFile,
+			HasDiff:  hasDiff,
 		})
 
 	}

@@ -44,10 +44,16 @@ func handler(s *service.Service) http.Handler {
 
 	// Генератор файлов migration
 	api.GET("/generate-migration", s.GenerateMigrationApi)
+	// Генератор файлов migration
+	api.GET("/generate-service", s.GenerateServiceFileApi)
+
+	api.GET("/generate-test", s.GenerateServiceTestFileApi)
+
+	api.GET("/generate-general", s.GenerateGeneralFileApi)
+
+	api.POST("/save-file", s.SaveFileApi)
 
 	api.GET("/update-go", s.UpdateGoPackagesInDir)
-
-	//
 
 	return handler
 

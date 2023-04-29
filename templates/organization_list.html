@@ -34,9 +34,7 @@
                                     <th class="column-title">Type</th>
                                     <th class="column-title">Github Repository</th>
                                     <th class="column-title">Gitlab Repository</th>
-                                    <th class="column-title">LastReleaseDate</th>
-                                    <th class="column-title">LatestReleaseTag</th>
-                                    <th class="column-title no-link last"><span class="nobr">LastReleaseAuthor</span>
+                                    <th class="column-title no-link last"><span class="nobr">Actions</span>
                                     </th>
 
                                 </tr>
@@ -77,14 +75,21 @@
 <!--                                        <span class="badge badge-success">{{ .NewTag }}</span>-->
 <!--                                        {{ end }}-->
                                     </td>
-                                    <td>
 
+                                    <td class=" last">
+
+                                        {{ if eq .Type 1 }}
+                                            <div class="btn btn-primary loadData" data-type="entity" data-project-id="{{ .Id }}" title="entity">E</div>
+                                            <div class="btn btn-primary loadData" data-type="migration" data-project-id="{{ .Id }}"  title="Migration">M</div>
+                                            <div class="btn btn-primary loadData" data-type="service" data-project-id="{{ .Id }}" title="Service">S</div>
+                                            <div class="btn btn-primary loadData" data-type="test" data-project-id="{{ .Id }}" title="Test File">T</div>
+                                            <div class="btn btn-primary loadData" data-type="general" data-project-id="{{ .Id }}" title="General File">G</div>
+                                            <div class="btn btn-warning loadData" data-type="all" data-project-id="{{ .Id }}" title="General File">All</div>
+                                        {{ end }}
                                     </td>
-                                    <td>{{ .CreatedAt.Format "02.01.2006 15:04:05" }}</td>
-                                    <td class=" last"><div class="btn entity loadData" data-project-id="{{ .Id }}">Entity</div></td>
 
                                 </tr>
-                                <tr><td colspan="100%"><div class="data-projectid-{{ .Id }}"></div></td></tr>
+                                <tr><td colspan="100%"><div class="data-projectid data-projectid-{{ .Id }}"></div></td></tr>
                                 {{ end }}
                                 </tbody>
                             </table>
@@ -116,70 +121,104 @@
     </div>
 </div>
 
-
-<style>
-
-    #container-diff {
-        height: 100%;
-        width: 100%;
-        box-sizing: border-box;
-        min-height: 800px;
-    }
-
-    .actions {
-        height: 2em;
-        display: flex;
-        align-items: center;
-        border-top: 1px solid #aaa;
-        padding: 0.2em;
-        box-sizing: border-box;
-    }
-
-    label {
-        padding-right: 0.3em;
-    }
-</style>
+ß
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs/loader.min.js"></script>
 <script>
 
-        function fetchData(projectId) {
-        $.ajax({
-            url: '/api/generate-entity',
-            type: 'GET',
-            dataType: 'json',
-            data: {
-                project_id: projectId
-            },
-            success: function(response) {
-                const filesPreviews = response;
+        function fetchData(projectId, parts) {
 
-                let content = filesPreviews.map(filesPreview => {
-                    var hash = Math.random().toString(36).substring(7);
-                    return `
-                            <div class="file-preview">
-                                <p>File Path: ${filesPreview.file_path}</p>
-                                <p>Has File: ${filesPreview.has_file}</p>
-                                <p>Has Diff: ${filesPreview.has_diff}</p>
-                                <div style="display: none" class="codeleft ${projectId}-${hash}-left">${filesPreview.old_code}</div>
-                                <div style="display: none" class="coderight ${projectId}-${hash}-right">${filesPreview.new_code}</div>
-                                <button class="btn btn-primary compare-btn" data-toggle="modal" data-target="#compareModal" data-code="${projectId}-${hash}">Compare Code 1</button>
-                            </div>
+            $('.data-projectid').html("");
+
+            parts.forEach((part) => {
+                $.ajax({
+                    url: '/api/generate-' + part,
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {
+                        project_id: projectId
+                    },
+                    success: function (response) {
+                        const filesPreviews = response;
+
+                        let content = filesPreviews.map(filesPreview => {
+                            var hash = Math.random().toString(36).substring(7);
+                            var label = '';
+
+                            if (!filesPreview.has_file) {
+                                label = `<span class="badge badge-success">New</span>`
+                            }
+                            if (filesPreview.has_file && !filesPreview.has_diff) {
+                                label = `<span class="badge badge-secondary">same</span>`
+                            }
+                            if (filesPreview.has_file && filesPreview.has_diff) {
+                                label = `<span class="badge badge-warning">diff</span>`
+                            }
+
+                            return `
+                            <tr class="file-preview">
+                                <td><input type="checkbox"  class="file-checkbox"></td>
+                                <td class="file-path">${label} <span class="file-path-only">${filesPreview.file_path}</span></td>
+                                <td>${filesPreview.has_file}</td>
+                                <td>${filesPreview.has_diff}</td>
+                                <td>
+                                             <div style="display: none" class="codeleft ${projectId}-${hash}-left">${filesPreview.old_code}</div>
+                                            <div style="display: none" class="coderight ${projectId}-${hash}-right">${filesPreview.new_code}</div>
+                                            <button class="btn btn-primary btn-sm compare-btn" data-toggle="modal" data-target="#compareModal" data-code="${projectId}-${hash}">Compare Code 1</button>
+                                </td>
+                            </tr>
                         `;
-                }).join('');
+                        }).join('');
 
-                $('.data-projectid-'+projectId).html(content);
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                console.error("Error: " + textStatus + "; " + errorThrown);
-            }
-        });
+
+                        content = `<div class="${part}">
+                                <h2>Generate ${part} files</h2>
+                                <div class="table-responsive-lg">
+                                  <table class="table list-files">
+                                        <tr class="file-preview">
+                                            <td><input type="checkbox"></td>
+                                            <td>File Path </td>
+                                            <td>Has File</td>
+                                            <td>Has Diff</td>
+                                            <td>Actions</td>
+                                        </tr>
+                                     ${content}
+                                  </table>
+                                </div>
+                                </div>
+
+                                 <button class="btn btn-success btn-sm save-files">Save ALL checked</button>
+                            `;
+
+                        $('.data-projectid-' + projectId).html($('.data-projectid-' + projectId).html()+content);
+                        $('.table.list-files',document).each(function () {
+                            const $table = $(this);
+                            const $firstCheckbox = $table.find('tr.file-preview:first-child input[type="checkbox"]');
+                            const $allCheckboxes = $table.find('tr.file-preview input[type="checkbox"]');
+
+                            $firstCheckbox.on('change', function () {
+                                const isChecked = $(this).prop('checked');
+                                $allCheckboxes.prop('checked', isChecked);
+                            });
+                        });
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error("Error: " + textStatus + "; " + errorThrown);
+                    }
+                });
+            });
     }
 
         $(document).ready(function() {
         $('.loadData').on('click', function() {
+            let type = [$(this).data("type")]
             const projectId = $(this).data('project-id');
-            fetchData(projectId);
+
+            if ($(this).data("type") == 'all') {
+                type = ['entity','migration','service','test','general'];
+            }
+
+            fetchData(projectId,type);
         });
     });
 
@@ -236,6 +275,54 @@
             }
         });
     });
+
+        async function sendFilesToServer(files) {
+            files = files || collectFilesData();
+            for (const file of files) {
+                const formData = new FormData();
+                formData.append("filepath", file.filepath);
+                formData.append("code", file.code);
+
+                const response = await fetch("/api/save-file", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    console.log(`File ${file.filepath} successfully saved`);
+                } else {
+                    console.log(`Error while saving file ${file.filepath}`);
+                }
+            }
+            console.log("All files processed");
+        }
+
+
+
+        function collectFilesData() {
+            const files = [];
+
+            $('.file-preview').each(function() {
+                const isChecked = $(this).find('.file-checkbox').prop('checked');
+                if (!isChecked) return;
+
+                const filePath = $(this).find('.file-path-only').text();
+                const code = $(this).find('.coderight').text();
+
+                files.push({
+                    filepath: filePath,
+                    code: code,
+                });
+            });
+
+            return files;
+        }
+
+        $(document).on('click','.save-files', function () {
+            sendFilesToServer();
+        });
+
+
 </script>
 
 {{ template "_footer" .}}

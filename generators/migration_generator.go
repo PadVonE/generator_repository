@@ -27,7 +27,11 @@ func GenerateMigration(strc entity.Struct) (code string, addEditLogTrigger bool,
 		switch s.Type {
 		case "*timestamp.Timestamp":
 		case "*timestamppb.Timestamp":
-			code += strcase.ToSnake(s.Name) + " timestamp not null default CURRENT_TIMESTAMP"
+			if s.Name == "DeletedAt" {
+				code += strcase.ToSnake(s.Name) + " timestamp"
+				break
+			}
+			code += strcase.ToSnake(s.Name) + " timestamp not null default current_timestamp"
 		case "int32":
 			code += strcase.ToSnake(s.Name) + " integer not null default 0"
 		case "string":

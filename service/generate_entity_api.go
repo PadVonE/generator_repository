@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
 )
 
 func (s *Service) GenerateEntityApi(ctx *gin.Context) {
@@ -79,7 +80,7 @@ func (s *Service) GenerateEntityApi(ctx *gin.Context) {
 			//}
 			formattedCodeOldCode := ""
 			hasFile := false
-			hasDiff := false
+			hasDiff := true
 			if _, err := os.Stat(saveFilePath); err == nil {
 				hasFile = true
 
@@ -96,8 +97,8 @@ func (s *Service) GenerateEntityApi(ctx *gin.Context) {
 
 				formattedCodeOldCode = string(byte)
 
-				if removeSpacesAndNewlines(formattedCodeOldCode) == removeSpacesAndNewlines(formattedCodeNewCode) {
-					hasDiff = true
+				if CompareStrings(formattedCodeOldCode, formattedCodeNewCode) {
+					hasDiff = false
 				}
 			}
 
@@ -116,8 +117,22 @@ func (s *Service) GenerateEntityApi(ctx *gin.Context) {
 }
 
 func removeSpacesAndNewlines(s string) string {
-	withoutSpaces := strings.ReplaceAll(s, " ", "")
+
+	withoutSpaces := strings.TrimSpace(s)
 	withoutEnter := strings.ReplaceAll(withoutSpaces, "\n", "")
 	withoutNewlines := strings.ReplaceAll(withoutEnter, "\t", "")
 	return withoutNewlines
+}
+
+func removeWhitespace(s string) string {
+	return strings.Map(func(r rune) rune {
+		if unicode.IsSpace(r) {
+			return -1
+		}
+		return r
+	}, s)
+}
+
+func CompareStrings(s1, s2 string) bool {
+	return removeWhitespace(s1) == removeWhitespace(s2)
 }

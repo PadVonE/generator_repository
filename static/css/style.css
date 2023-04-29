@@ -24,7 +24,10 @@ td {
 }
 
 
-
+.table.list-files td {
+    padding: 0 0.5rem;
+    vertical-align: middle;
+}
 
 
 @media (min-width: 576px){

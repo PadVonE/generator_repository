@@ -64,6 +64,17 @@ func (s *Service) GenerateMigrationApi(ctx *gin.Context) {
 	hasEditedLog := false
 	for _, l := range projectComponents.ListOfStruct {
 		if l.Type == entity.TypeMain {
+			// Если в entity нет поля id то пропускаем
+			hasId := false
+			for _, row := range l.Rows {
+				if row.Name == "Id" {
+					hasId = true
+				}
+			}
+			if hasId == false {
+				continue
+			}
+
 			code, addEditLogTrigger, err := generators.GenerateMigration(l)
 			if err != nil {
 				log.Error(err)
@@ -105,12 +116,31 @@ func (s *Service) GenerateMigrationApi(ctx *gin.Context) {
 		log.Warn("Migration isset in path " + saveFilePath + saveFileName)
 	}
 
-	response := entity.FilesPreview{
-		FilePath: saveFilePath,
-		NewCode:  migration,
-		OldCode:  "",
-		HasFile:  false,
+	formattedCodeOldCode := ""
+	hasFile := false
+	hasDiff := true
+	if _, err := os.Stat(saveFilePath + saveFileName); err == nil {
+		hasFile = true
+
+		file, err := os.ReadFile(saveFilePath + saveFileName)
+		if err != nil {
+			log.Fatalf("Ошибка при чтении файла: %v", err)
+		}
+
+		formattedCodeOldCode = string(file)
+
+		if CompareStrings(formattedCodeOldCode, migration) {
+			hasDiff = false
+		}
 	}
+
+	response := []entity.FilesPreview{{
+		FilePath: saveFilePath + saveFileName,
+		NewCode:  migration,
+		OldCode:  formattedCodeOldCode,
+		HasFile:  hasFile,
+		HasDiff:  hasDiff,
+	}}
 
 	ctx.JSON(200, response)
 
