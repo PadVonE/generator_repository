@@ -6,7 +6,9 @@ body {
 td {
    font-size: 14px;
 }
-
+.file-preview.active{
+    background-color: #eee;
+}
 
 .table-color-0 {
     background-color: #eee;

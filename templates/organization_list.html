@@ -16,7 +16,7 @@
 
                         <div class="clearfix"></div>
                     </div>
-
+                    <button class="btn btn-primary pressAllCloneRep">Clone all repositories</button>
 
                     <div class="x_content">
 
@@ -79,12 +79,16 @@
                                     <td class=" last">
 
                                         {{ if eq .Type 1 }}
-                                            <div class="btn btn-primary loadData" data-type="entity" data-project-id="{{ .Id }}" title="entity">E</div>
-                                            <div class="btn btn-primary loadData" data-type="migration" data-project-id="{{ .Id }}"  title="Migration">M</div>
-                                            <div class="btn btn-primary loadData" data-type="service" data-project-id="{{ .Id }}" title="Service">S</div>
-                                            <div class="btn btn-primary loadData" data-type="test" data-project-id="{{ .Id }}" title="Test File">T</div>
-                                            <div class="btn btn-primary loadData" data-type="general" data-project-id="{{ .Id }}" title="General File">G</div>
-                                            <div class="btn btn-warning loadData" data-type="all" data-project-id="{{ .Id }}" title="General File">All</div>
+                                             <div class="btn btn-success cloneRep"  title="Clone repository" data-project-id="{{ .Id }}"><i class="fa fa-download"></i></div>
+
+
+                                                <button class="btn btn-primary loadData" data-type="entity" data-project-id="{{ .Id }}" title="entity"  {{ if not .HasClone }}disabled{{ end }}>E</button>
+                                                <button class="btn btn-primary loadData" data-type="migration" data-project-id="{{ .Id }}"  title="Migration"  {{ if not .HasClone }}disabled{{ end }}>M</button>
+                                                <button class="btn btn-primary loadData" data-type="service" data-project-id="{{ .Id }}" title="Service"  {{ if not .HasClone }}disabled{{ end }}>S</button>
+                                                <button class="btn btn-primary loadData" data-type="test" data-project-id="{{ .Id }}" title="Test File"  {{ if not .HasClone }}disabled{{ end }}>T</button>
+                                                <button class="btn btn-primary loadData" data-type="general" data-project-id="{{ .Id }}" title="General File"  {{ if not .HasClone }}disabled{{ end }}>G</button>
+                                                <button class="btn btn-warning loadData" data-type="all" data-project-id="{{ .Id }}" title="General File"  {{ if not .HasClone }}disabled{{ end }}>All</button>
+
                                         {{ end }}
                                     </td>
 
@@ -164,7 +168,7 @@
                                 <td>
                                              <div style="display: none" class="codeleft ${projectId}-${hash}-left">${filesPreview.old_code}</div>
                                             <div style="display: none" class="coderight ${projectId}-${hash}-right">${filesPreview.new_code}</div>
-                                            <button class="btn btn-primary btn-sm compare-btn" data-toggle="modal" data-target="#compareModal" data-code="${projectId}-${hash}">Compare Code 1</button>
+                                            <button class="btn btn-primary btn-sm compare-btn" data-toggle="modal" data-target="#compareModal" data-code="${projectId}-${hash}">Compare Code</button>
                                 </td>
                             </tr>
                         `;
@@ -259,6 +263,8 @@
             console.log(classblock)
             codeLeft =$("."+classblock+"-left",document).html()
             codeRight =$("."+classblock+"-right",document).html()
+            $(".file-preview",document).removeClass("active")
+            $(this).closest(".file-preview").addClass("active")
         });
 
         // Открытие модального окна
@@ -322,6 +328,43 @@
             sendFilesToServer();
         });
 
+        $(document).ready(function() {
+            $('.cloneRep').on('click', function() {
+                var button = $(this);
+                var projectId = button.data('project-id');
+                var originalIcon = button.find('i');
+                var loadingIcon = $('<i class="fa fa-spinner fa-spin"></i>');
+
+                // Замена иконки на иконку загрузки
+                button.html(loadingIcon);
+
+                // Выполнение запроса
+                $.ajax({
+                    url: '/api/clone-repository',
+                    type: 'GET',
+                    data: { project_id: projectId },
+                    success: function(data) {
+                        // Обработка успешного выполнения запроса
+                        console.log('Успешно:', data);
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        // Обработка ошибок выполнения запроса
+                        console.error('Ошибка:', textStatus, errorThrown);
+                    },
+                    complete: function() {
+                        // Возврат исходной иконки после выполнения запроса
+                        button.html(originalIcon);
+                        // Изменение цвета кнопки на серый
+                        button.removeClass('btn-success').addClass('btn-secondary').attr('disabled', true);
+                    }
+                });
+            });
+
+            // Кнопка для нажатия всех кнопок 'cloneRep'
+            $('.pressAllCloneRep').on('click', function() {
+                $('.cloneRep').click();
+            });
+        });
 
 </script>
 

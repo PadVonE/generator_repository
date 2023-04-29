@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v39/github"
 	"os"
+	"path/filepath"
 )
 
 func (s *Service) Organization(ctx *gin.Context) {
@@ -44,7 +45,7 @@ func (s *Service) Organization(ctx *gin.Context) {
 		for i, project := range projects {
 			if project.Name == *repo.Name {
 				hasDb = true
-				if project.PushedAt != repo.GetPushedAt().UTC() {
+				if project.Type == entity.PROJECT_TYPE_REPOSITORY && project.PushedAt != repo.GetPushedAt().UTC() {
 
 					release, _ := s.getLastRelease(organization.Name, *repo.Name)
 					commit, _ := s.getLastCommit(organization.Name, *repo.Name)
@@ -56,6 +57,11 @@ func (s *Service) Organization(ctx *gin.Context) {
 					projects[i].NewCommitName = commit.GetCommit().GetMessage()
 					projects[i].NewCommitDate = commit.Commit.GetAuthor().GetDate()
 				}
+			}
+
+			path := filepath.FromSlash("./tmp/" + project.Name)
+			if _, err := os.Stat(path); err == nil {
+				projects[i].HasClone = true
 			}
 		}
 
@@ -113,6 +119,15 @@ func (s *Service) getOrganizationRepositories(organization string) ([]*github.Re
 	}
 
 	return allRepos, nil
+}
+
+func (s *Service) getRepository(owner, repo string) (*github.Repository, error) {
+	ctx := context.Background()
+	repository, _, err := s.GitClient.Repositories.Get(ctx, owner, repo)
+	if err != nil {
+		return nil, err
+	}
+	return repository, nil
 }
 
 func (s *Service) getLastCommit(owner, repoName string) (*github.RepositoryCommit, error) {

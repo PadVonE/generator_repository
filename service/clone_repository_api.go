@@ -68,6 +68,36 @@ func (s *Service) CloneRepositoryApi(ctx *gin.Context) {
 		return
 	}
 
+	org := entity.Organization{}
+
+	query = s.DB.Model(&org)
+
+	err = query.Where("id = ?", project.OrganizationId).Take(&org).Error
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	repo, err := s.getRepository(org.Name, project.Name)
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	project.PushedAt = repo.GetPushedAt().UTC()
+
+	release, _ := s.getLastRelease(org.Name, *repo.Name)
+	commit, _ := s.getLastCommit(org.Name, *repo.Name)
+
+	if release.GetTagName() != project.GithubReleaseTag {
+		project.NewTag = release.GetTagName()
+	}
+
+	project.NewCommitName = commit.GetCommit().GetMessage()
+	project.NewCommitDate = commit.Commit.GetAuthor().GetDate()
+
 	project.LastStructure = string(structure)
 	err = s.DB.Save(&project).Error
 	if err != nil {

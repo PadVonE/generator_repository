@@ -36,6 +36,7 @@ type Project struct {
 	NewTag        string    `gorm:"-"`
 	NewCommitName string    `gorm:"-"`
 	NewCommitDate time.Time `gorm:"-"`
+	HasClone      bool      `gorm:"-"`
 }
 
 func (project *Project) TableName() string {
