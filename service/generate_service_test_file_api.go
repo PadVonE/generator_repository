@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"generator/entity"
-	"generator/generators"
+	"generator/generators/repository"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"go/format"
@@ -67,12 +67,12 @@ func (s *Service) GenerateServiceTestFileApi(ctx *gin.Context) {
 				continue
 			}
 
-			byte, err := format.Source([]byte(codeTest))
+			byteSource, err := format.Source([]byte(codeTest))
 			if err != nil {
 				fmt.Println("Error formatting code:", err)
 				return
 			}
-			formattedCodeNewCode := string(byte)
+			formattedCodeNewCode := string(byteSource)
 
 			formattedCodeOldCode := ""
 			hasFile := false
@@ -85,13 +85,13 @@ func (s *Service) GenerateServiceTestFileApi(ctx *gin.Context) {
 					log.Fatalf("Ошибка при чтении файла: %v", err)
 				}
 
-				byte, err := format.Source(file)
+				byteSource, err := format.Source(file)
 				if err != nil {
 					fmt.Println("Error formatting code:", err)
 					return
 				}
 
-				formattedCodeOldCode = string(byte)
+				formattedCodeOldCode = string(byteSource)
 
 				if CompareStrings(formattedCodeOldCode, formattedCodeNewCode) {
 					hasDiff = false

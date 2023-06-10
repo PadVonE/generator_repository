@@ -2,7 +2,6 @@
 {{ template "_header" .}}
 
 
-
 <div class="jumbotron jumbotron-fluid">
     <div class="container">
         <!-- Example row of columns -->
@@ -12,7 +11,8 @@
             <div class="col-md-12 col-sm-12 col-xs-12">
                 <div class="x_panel">
                     <div class="x_title">
-                        <h2>Organization <small>{{ .Organization.Name }}</small></h2>
+                        <h2 class="organization" data-id="{{ .Organization.Id }}">Organization <small>{{
+                            .Organization.Name }}</small></h2>
 
                         <div class="clearfix"></div>
                     </div>
@@ -47,13 +47,17 @@
                                         <input type="checkbox" class="flat" name="table_records">
                                     </td>
                                     <td>{{ .Id }}</td>
-                                    <td>{{ .Name }}<div><span class="badge badge-primary">{{ .LocalPath}}</span></div></td>
+                                    <td>{{ .Name }}
+                                        <div><span class="badge badge-primary">{{ .LocalPath}}</span></div>
+                                    </td>
                                     <td>{{ .Type }}</td>
-                                    <td><span class="badge badge-dark">{{ .GithubLastCommitAuthor }}</span> <span class="badge badge-primary">{{ .GithubLastCommitName }}</span>
+                                    <td><span class="badge badge-dark">{{ .GithubLastCommitAuthor }}</span> <span
+                                            class="badge badge-primary">{{ .GithubLastCommitName }}</span>
                                         {{ .GithubLastCommitTime | timeAgo }}
 
                                         {{ if .NewCommitName }}
-                                        <br><span class="badge badge-warning">{{ .NewCommitName}}</span> {{ .NewCommitDate | timeAgo }}
+                                        <br><span class="badge badge-warning">{{ .NewCommitName}}</span> {{
+                                        .NewCommitDate | timeAgo }}
                                         {{ end }}
                                         <br>
                                         <span class="badge badge-secondary">{{ .GithubReleaseTag }}</span>
@@ -62,38 +66,96 @@
                                         <span class="badge badge-success">{{ .NewTag }}</span>
                                         {{ end }}
                                     </td>
-                                    <td><span class="badge badge-dark">{{ .GitlabLastCommitAuthor }}</span> <span class="badge badge-primary">{{ .GitlabLastCommitName }}</span>
+                                    <td><span class="badge badge-dark">{{ .GitlabLastCommitAuthor }}</span> <span
+                                            class="badge badge-primary">{{ .GitlabLastCommitName }}</span>
                                         {{ .GitlabLastCommitTime | timeAgo }}
 
-<!--                                        {{ if .NewCommitName }}-->
-<!--                                        <br><span class="badge badge-warning">{{ .NewCommitName}}</span> {{ .NewCommitDate | timeAgo }}-->
-<!--                                        {{ end }}-->
+                                        <!--                                        {{ if .NewCommitName }}-->
+                                        <!--                                        <br><span class="badge badge-warning">{{ .NewCommitName}}</span> {{ .NewCommitDate | timeAgo }}-->
+                                        <!--                                        {{ end }}-->
                                         <br>
                                         <span class="badge badge-secondary">{{ .GitlabReleaseTag }}</span>
-<!--                                        {{ if .NewTag }}-->
-<!--                                        ->-->
-<!--                                        <span class="badge badge-success">{{ .NewTag }}</span>-->
-<!--                                        {{ end }}-->
+                                        <!--                                        {{ if .NewTag }}-->
+                                        <!--                                        ->-->
+                                        <!--                                        <span class="badge badge-success">{{ .NewTag }}</span>-->
+                                        <!--                                        {{ end }}-->
                                     </td>
 
                                     <td class=" last">
+                                        {{ if .IsNewProject }}
+
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="btn btn-danger create-new-project" title="Create project"
+                                                     data-project="{{ .Name }}"><i class="fa fa-plus"></i></div>
+                                            </div>
+                                            <div class="col-md-9">
+                                                <input type="checkbox" name="" checked> <label> Файлы реализации</label>
+                                                <br>
+                                                <input type="checkbox" name="" checked> <label>
+
+                                                {{ if eq .Type 1 }}Протофайлы {{ end }}
+                                                {{ if eq .Type 2 }}Протофайлы {{ end }}
+                                                {{ if eq .Type 3 }}Файлы спецификаций {{ end }}
+
+                                            </label>
+                                            </div>
+                                        </div>
+                                        {{ else }}
+
 
                                         {{ if eq .Type 1 }}
-                                             <div class="btn btn-success cloneRep"  title="Clone repository" data-project-id="{{ .Id }}"><i class="fa fa-download"></i></div>
+                                        <div class="btn btn-success cloneRep" title="Clone repository"
+                                             data-project-id="{{ .Id }}"><i class="fa fa-download"></i></div>
 
-
-                                                <button class="btn btn-primary loadData" data-type="entity" data-project-id="{{ .Id }}" title="entity"  {{ if not .HasClone }}disabled{{ end }}>E</button>
-                                                <button class="btn btn-primary loadData" data-type="migration" data-project-id="{{ .Id }}"  title="Migration"  {{ if not .HasClone }}disabled{{ end }}>M</button>
-                                                <button class="btn btn-primary loadData" data-type="service" data-project-id="{{ .Id }}" title="Service"  {{ if not .HasClone }}disabled{{ end }}>S</button>
-                                                <button class="btn btn-primary loadData" data-type="test" data-project-id="{{ .Id }}" title="Test File"  {{ if not .HasClone }}disabled{{ end }}>T</button>
-                                                <button class="btn btn-primary loadData" data-type="general" data-project-id="{{ .Id }}" title="General File"  {{ if not .HasClone }}disabled{{ end }}>G</button>
-                                                <button class="btn btn-warning loadData" data-type="all" data-project-id="{{ .Id }}" title="General File"  {{ if not .HasClone }}disabled{{ end }}>All</button>
+                                        <button class="btn btn-primary loadData" data-type="entity"
+                                                data-project-id="{{ .Id }}" title="entity" {{ if not .HasClone
+                                                }}disabled{{ end }}>E
+                                        </button>
+                                        <button class="btn btn-primary loadData" data-type="migration"
+                                                data-project-id="{{ .Id }}" title="Migration" {{ if not .HasClone
+                                                }}disabled{{ end }}>M
+                                        </button>
+                                        <button class="btn btn-primary loadData" data-type="service"
+                                                data-project-id="{{ .Id }}" title="Service" {{ if not .HasClone
+                                                }}disabled{{ end }}>S
+                                        </button>
+                                        <button class="btn btn-primary loadData" data-type="test"
+                                                data-project-id="{{ .Id }}" title="Test File" {{ if not .HasClone
+                                                }}disabled{{ end }}>T
+                                        </button>
+                                        <button class="btn btn-primary loadData" data-type="general"
+                                                data-project-id="{{ .Id }}" title="General File" {{ if not .HasClone
+                                                }}disabled{{ end }}>G
+                                        </button>
+                                        <button class="btn btn-warning loadData" data-type="all"
+                                                data-project-id="{{ .Id }}" title="General File" {{ if not .HasClone
+                                                }}disabled{{ end }}>All
+                                        </button>
 
                                         {{ end }}
+
+                                        {{ if eq .Type 3 }}
+                                        <div class="btn btn-success cloneGateway" title="Clone gateway"
+                                             data-project-id="{{ .Id }}"><i class="fa fa-download"></i></div>
+
+                                        <button class="btn btn-warning loadData" data-type="gateway"
+                                                data-project-id="{{ .Id }}" title="General File" {{ if not .HasClone
+                                                }}disabled{{ end }}>All
+                                        </button>
+
+                                        {{ end }}
+
+                                        {{ end }}
+
                                     </td>
 
                                 </tr>
-                                <tr><td colspan="100%"><div class="data-projectid data-projectid-{{ .Id }}"></div></td></tr>
+                                <tr>
+                                    <td colspan="100%">
+                                        <div class="data-projectid data-projectid-{{ .Id }}"></div>
+                                    </td>
+                                </tr>
                                 {{ end }}
                                 </tbody>
                             </table>
@@ -107,9 +169,9 @@
 </div>
 
 
-
 <!-- Modal -->
-<div class="modal fade bd-example-modal-xl" id="compareModal" tabindex="-1" role="dialog" aria-labelledby="compareModalLabel" aria-hidden="true">
+<div class="modal fade bd-example-modal-xl" id="compareModal" tabindex="-1" role="dialog"
+     aria-labelledby="compareModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -130,36 +192,36 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs/loader.min.js"></script>
 <script>
 
-        function fetchData(projectId, parts) {
+    function fetchData(projectId, parts) {
 
-            $('.data-projectid').html("");
+        $('.data-projectid').html("");
 
-            parts.forEach((part) => {
-                $.ajax({
-                    url: '/api/generate-' + part,
-                    type: 'GET',
-                    dataType: 'json',
-                    data: {
-                        project_id: projectId
-                    },
-                    success: function (response) {
-                        const filesPreviews = response;
+        parts.forEach((part) => {
+            $.ajax({
+                url: '/api/generate-' + part,
+                type: 'GET',
+                dataType: 'json',
+                data: {
+                    project_id: projectId
+                },
+                success: function (response) {
+                    const filesPreviews = response;
 
-                        let content = filesPreviews.map(filesPreview => {
-                            var hash = Math.random().toString(36).substring(7);
-                            var label = '';
+                    let content = filesPreviews.map(filesPreview => {
+                        var hash = Math.random().toString(36).substring(7);
+                        var label = '';
 
-                            if (!filesPreview.has_file) {
-                                label = `<span class="badge badge-success">New</span>`
-                            }
-                            if (filesPreview.has_file && !filesPreview.has_diff) {
-                                label = `<span class="badge badge-secondary">same</span>`
-                            }
-                            if (filesPreview.has_file && filesPreview.has_diff) {
-                                label = `<span class="badge badge-warning">diff</span>`
-                            }
+                        if (!filesPreview.has_file) {
+                            label = `<span class="badge badge-success">New</span>`
+                        }
+                        if (filesPreview.has_file && !filesPreview.has_diff) {
+                            label = `<span class="badge badge-secondary">same</span>`
+                        }
+                        if (filesPreview.has_file && filesPreview.has_diff) {
+                            label = `<span class="badge badge-warning">diff</span>`
+                        }
 
-                            return `
+                        return `
                             <tr class="file-preview">
                                 <td><input type="checkbox"  class="file-checkbox"></td>
                                 <td class="file-path">${label} <span class="file-path-only">${filesPreview.file_path}</span></td>
@@ -172,10 +234,10 @@
                                 </td>
                             </tr>
                         `;
-                        }).join('');
+                    }).join('');
 
 
-                        content = `<div class="${part}">
+                    content = `<div class="${part}">
                                 <h2>Generate ${part} files</h2>
                                 <div class="table-responsive-lg">
                                   <table class="table list-files">
@@ -194,35 +256,61 @@
                                  <button class="btn btn-success btn-sm save-files">Save ALL checked</button>
                             `;
 
-                        $('.data-projectid-' + projectId).html($('.data-projectid-' + projectId).html()+content);
-                        $('.table.list-files',document).each(function () {
-                            const $table = $(this);
-                            const $firstCheckbox = $table.find('tr.file-preview:first-child input[type="checkbox"]');
-                            const $allCheckboxes = $table.find('tr.file-preview input[type="checkbox"]');
+                    $('.data-projectid-' + projectId).html($('.data-projectid-' + projectId).html() + content);
+                    $('.table.list-files', document).each(function () {
+                        const $table = $(this);
+                        const $firstCheckbox = $table.find('tr.file-preview:first-child input[type="checkbox"]');
+                        const $allCheckboxes = $table.find('tr.file-preview input[type="checkbox"]');
 
-                            $firstCheckbox.on('change', function () {
-                                const isChecked = $(this).prop('checked');
-                                $allCheckboxes.prop('checked', isChecked);
-                            });
+                        $firstCheckbox.on('change', function () {
+                            const isChecked = $(this).prop('checked');
+                            $allCheckboxes.prop('checked', isChecked);
                         });
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        console.error("Error: " + textStatus + "; " + errorThrown);
-                    }
-                });
+                    });
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error("Error: " + textStatus + "; " + errorThrown);
+                }
             });
+        });
     }
 
-        $(document).ready(function() {
-        $('.loadData').on('click', function() {
+    $(document).ready(function () {
+        $('.loadData').on('click', function () {
             let type = [$(this).data("type")]
             const projectId = $(this).data('project-id');
 
             if ($(this).data("type") == 'all') {
-                type = ['entity','migration','service','test','general'];
+                type = ['entity', 'migration', 'service', 'test', 'general'];
             }
 
-            fetchData(projectId,type);
+            fetchData(projectId, type);
+        });
+
+
+        var button = $('.btn.btn-danger.create-new-project');
+        var originalButtonHtml = button.html();  // сохраняем оригинальное содержимое кнопки
+
+        button.click(function() {
+            var organizationId = $('h2.organization').data('id');
+            var projectName = $(this).data('project');
+
+            var loadingIcon = $('<i class="fa fa-spinner fa-spin"></i>');
+            button.html(loadingIcon);  // заменяем содержимое кнопки на иконку загрузки
+
+            $.get('/api/create-project', { organization_id: organizationId, project_name: projectName })
+                .done(function(data) {
+                    // успешное выполнение запроса
+                    location.reload(); // обновить страницу
+                })
+                .fail(function() {
+                    // ошибка выполнения запроса
+                    console.error('Не удалось создать проект');
+                })
+                .always(function() {
+                    // возвращаем оригинальное содержимое кнопки независимо от результата запроса
+                    button.html(originalButtonHtml);
+                });
         });
     });
 
@@ -240,7 +328,7 @@
                 compareEditor = null;
             }
 
-            require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs' } });
+            require.config({paths: {vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs'}});
             require(['vs/editor/editor.main'], function () {
                 compareEditor = monaco.editor.createDiffEditor(document.getElementById('container'), {
                     originalEditable: true,
@@ -256,14 +344,13 @@
         };
 
 
-
         // Открытие модального окна
-        $(document).on('click','.compare-btn', function () {
+        $(document).on('click', '.compare-btn', function () {
             var classblock = $(this).data("code");
             console.log(classblock)
-            codeLeft =$("."+classblock+"-left",document).html()
-            codeRight =$("."+classblock+"-right",document).html()
-            $(".file-preview",document).removeClass("active")
+            codeLeft = $("." + classblock + "-left", document).html()
+            codeRight = $("." + classblock + "-right", document).html()
+            $(".file-preview", document).removeClass("active")
             $(this).closest(".file-preview").addClass("active")
         });
 
@@ -282,89 +369,119 @@
         });
     });
 
-        async function sendFilesToServer(files) {
-            files = files || collectFilesData();
-            for (const file of files) {
-                const formData = new FormData();
-                formData.append("filepath", file.filepath);
-                formData.append("code", file.code);
+    async function sendFilesToServer(files) {
+        files = files || collectFilesData();
+        for (const file of files) {
+            const formData = new FormData();
+            formData.append("filepath", file.filepath);
+            formData.append("code", file.code);
 
-                const response = await fetch("/api/save-file", {
-                    method: "POST",
-                    body: formData,
-                });
+            const response = await fetch("/api/save-file", {
+                method: "POST",
+                body: formData,
+            });
 
-                if (response.ok) {
-                    console.log(`File ${file.filepath} successfully saved`);
-                } else {
-                    console.log(`Error while saving file ${file.filepath}`);
-                }
+            if (response.ok) {
+                console.log(`File ${file.filepath} successfully saved`);
+            } else {
+                console.log(`Error while saving file ${file.filepath}`);
             }
-            console.log("All files processed");
         }
+        console.log("All files processed");
+    }
 
 
+    function collectFilesData() {
+        const files = [];
 
-        function collectFilesData() {
-            const files = [];
+        $('.file-preview').each(function () {
+            const isChecked = $(this).find('.file-checkbox').prop('checked');
+            if (!isChecked) return;
 
-            $('.file-preview').each(function() {
-                const isChecked = $(this).find('.file-checkbox').prop('checked');
-                if (!isChecked) return;
+            const filePath = $(this).find('.file-path-only').text();
+            const code = $(this).find('.coderight').text();
 
-                const filePath = $(this).find('.file-path-only').text();
-                const code = $(this).find('.coderight').text();
-
-                files.push({
-                    filepath: filePath,
-                    code: code,
-                });
+            files.push({
+                filepath: filePath,
+                code: code,
             });
-
-            return files;
-        }
-
-        $(document).on('click','.save-files', function () {
-            sendFilesToServer();
         });
 
-        $(document).ready(function() {
-            $('.cloneRep').on('click', function() {
-                var button = $(this);
-                var projectId = button.data('project-id');
-                var originalIcon = button.find('i');
-                var loadingIcon = $('<i class="fa fa-spinner fa-spin"></i>');
+        return files;
+    }
 
-                // Замена иконки на иконку загрузки
-                button.html(loadingIcon);
+    $(document).on('click', '.save-files', function () {
+        sendFilesToServer();
+    });
 
-                // Выполнение запроса
-                $.ajax({
-                    url: '/api/clone-repository',
-                    type: 'GET',
-                    data: { project_id: projectId },
-                    success: function(data) {
-                        // Обработка успешного выполнения запроса
-                        console.log('Успешно:', data);
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        // Обработка ошибок выполнения запроса
-                        console.error('Ошибка:', textStatus, errorThrown);
-                    },
-                    complete: function() {
-                        // Возврат исходной иконки после выполнения запроса
-                        button.html(originalIcon);
-                        // Изменение цвета кнопки на серый
-                        button.removeClass('btn-success').addClass('btn-secondary').attr('disabled', true);
-                    }
-                });
-            });
+    $(document).ready(function () {
+        $('.cloneRep').on('click', function () {
+            var button = $(this);
+            var projectId = button.data('project-id');
+            var originalIcon = button.find('i');
+            var loadingIcon = $('<i class="fa fa-spinner fa-spin"></i>');
 
-            // Кнопка для нажатия всех кнопок 'cloneRep'
-            $('.pressAllCloneRep').on('click', function() {
-                $('.cloneRep').click();
+            // Замена иконки на иконку загрузки
+            button.html(loadingIcon);
+
+            // Выполнение запроса
+            $.ajax({
+                url: '/api/clone-repository',
+                type: 'GET',
+                data: {project_id: projectId},
+                success: function (data) {
+                    // Обработка успешного выполнения запроса
+                    console.log('Успешно:', data);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    // Обработка ошибок выполнения запроса
+                    console.error('Ошибка:', textStatus, errorThrown);
+                },
+                complete: function () {
+                    // Возврат исходной иконки после выполнения запроса
+                    button.html(originalIcon);
+                    // Изменение цвета кнопки на серый
+                    button.removeClass('btn-success').addClass('btn-secondary').attr('disabled', true);
+                }
             });
         });
+        $('.cloneGateway').on('click', function () {
+            var button = $(this);
+            var projectId = button.data('project-id');
+            var originalIcon = button.find('i');
+            var loadingIcon = $('<i class="fa fa-spinner fa-spin"></i>');
+
+            // Замена иконки на иконку загрузки
+            button.html(loadingIcon);
+
+            // Выполнение запроса
+            $.ajax({
+                url: '/api/clone-gateway',
+                type: 'GET',
+                data: {project_id: projectId},
+                success: function (data) {
+                    // Обработка успешного выполнения запроса
+                    console.log('Успешно:', data);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    // Обработка ошибок выполнения запроса
+                    console.error('Ошибка:', textStatus, errorThrown);
+                },
+                complete: function () {
+                    // Возврат исходной иконки после выполнения запроса
+                    button.html(originalIcon);
+                    // Изменение цвета кнопки на серый
+                    button.removeClass('btn-success').addClass('btn-secondary').attr('disabled', true);
+                }
+            });
+        });
+
+
+        // Кнопка для нажатия всех кнопок 'cloneRep'
+        $('.pressAllCloneRep').on('click', function () {
+            $('.cloneRep').click();
+        });
+    });
 
 </script>
 

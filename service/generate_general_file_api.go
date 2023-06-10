@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"generator/entity"
-	"generator/generators"
+	"generator/generators/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/iancoleman/strcase"
 	log "github.com/sirupsen/logrus"
@@ -82,12 +82,12 @@ func (s *Service) GenerateGeneralFileApi(ctx *gin.Context) {
 		formattedCodeNewCode := code
 
 		if strings.HasSuffix(saveFilePath, ".go") {
-			byte, err := format.Source([]byte(code))
+			byteSource, err := format.Source([]byte(code))
 			if err != nil {
 				fmt.Println("Error formatting code:", err)
 				return
 			}
-			formattedCodeNewCode = string(byte)
+			formattedCodeNewCode = string(byteSource)
 		}
 
 		formattedCodeOldCode := ""
@@ -103,12 +103,12 @@ func (s *Service) GenerateGeneralFileApi(ctx *gin.Context) {
 
 			formattedCodeOldCode = string(file)
 			if strings.HasSuffix(saveFilePath, ".go") {
-				byte, err := format.Source(file)
+				byteSource, err := format.Source(file)
 				if err != nil {
 					fmt.Println("Error formatting code:", err)
 					return
 				}
-				formattedCodeOldCode = string(byte)
+				formattedCodeOldCode = string(byteSource)
 			}
 
 			if CompareStrings(formattedCodeOldCode, formattedCodeNewCode) {

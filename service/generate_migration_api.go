@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"generator/entity"
-	"generator/generators"
+	"generator/generators/repository"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"os"

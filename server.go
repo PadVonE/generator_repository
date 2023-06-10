@@ -30,11 +30,17 @@ func handler(s *service.Service) http.Handler {
 	// Создание организации и подтягивание проектов
 	api.GET("/list-organization", s.ListOrganizationApi)
 
-	// Создание структуры для проекта и клонирование прото и спек
+	// Создание структуры для организации и клонирование прото и спек
 	api.POST("/generate-organization-struct", s.CreateOrganizationStructApi)
+
+	// Создание структуры для проекта и клонирование прото и спек
+	api.GET("/create-project", s.CreateProject)
 
 	// Клонирование репозитория и переработка его в струкуру проекта для дальнейшей обработки
 	api.GET("/clone-repository", s.CloneRepositoryApi)
+
+	// Клонирование гетвея и переработка его в струкуру проекта для дальнейшей обработки
+	api.GET("/clone-gateway", s.CloneGatewayApi)
 
 	// создание структуры проекта папок для репозитория
 	api.GET("/generate-path-project", s.GeneratePathProjectRepositoryApi)
@@ -46,6 +52,8 @@ func handler(s *service.Service) http.Handler {
 	api.GET("/generate-migration", s.GenerateMigrationApi)
 	// Генератор файлов migration
 	api.GET("/generate-service", s.GenerateServiceFileApi)
+	// Генератор файлов gateway
+	api.GET("/generate-gateway", s.GenerateGatewayFileApi)
 
 	api.GET("/generate-test", s.GenerateServiceTestFileApi)
 

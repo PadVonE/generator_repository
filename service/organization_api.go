@@ -8,9 +8,9 @@ import (
 	"github.com/2q4t-plutus/envopt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v39/github"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"os"
-	"strings"
 	"sync"
 )
 
@@ -27,7 +27,6 @@ func (s *Service) ListOrganizationApi(ctx *gin.Context) {
 	organization := entity.Organization{}
 	err := s.DB.Model(&organization).Where("name = ?", organization.Name).Take(&organization).Error
 
-	_, err = s.getOrganizationRepositories(organization.Name)
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		return
@@ -91,7 +90,7 @@ func (s *Service) CreateOrganizationStructApi(ctx *gin.Context) {
 
 	for _, repo := range repos {
 		wg.Add(1)
-		go func(repo *github.Repository, organization *entity.Organization, projects []entity.Project) {
+		go func(wg *sync.WaitGroup, repo *github.Repository, organization *entity.Organization, projects []entity.Project) {
 			defer wg.Done()
 			hasDb := false
 			for _, project := range projects {
@@ -101,26 +100,10 @@ func (s *Service) CreateOrganizationStructApi(ctx *gin.Context) {
 			}
 
 			if !hasDb {
-				commit, _ := s.getLastCommit(organization.Name, *repo.Name)
-				release, _ := s.getLastRelease(organization.Name, *repo.Name)
-
-				project := entity.Project{
-					Type:                   entity.GetTypeProjectByName(*repo.Name),
-					OrganizationId:         organization.Id,
-					Name:                   repo.GetName(),
-					LocalPath:              organization.LocalPath + "/implementation/" + strings.TrimPrefix(repo.GetName(), "proto-"),
-					GithubUrl:              "https://github.com/" + organization.Name + "/" + repo.GetName(),
-					PushedAt:               repo.GetPushedAt().UTC(),
-					GithubLastCommitName:   commit.Commit.GetMessage(),
-					GithubLastCommitTime:   commit.Commit.GetAuthor().GetDate(),
-					GithubLastCommitAuthor: commit.Commit.GetAuthor().GetName(),
-					GithubReleaseTag:       release.GetTagName(),
-					LastStructure:          "{}",
-				}
-
-				s.DB.Create(&project)
+				s.createProject(repo, organization)
 			}
-		}(repo, &organization, projects)
+
+		}(&wg, repo, &organization, projects)
 	}
 	wg.Wait()
 
@@ -151,76 +134,93 @@ func (s *Service) CreateOrganizationStructApi(ctx *gin.Context) {
 	err = query.Where("organization_id = ?", organization.Id).Find(&projects).Error
 	for _, project := range projects {
 		wg.Add(1)
-		go func(project entity.Project, organization entity.Organization) {
+		go func(wg *sync.WaitGroup, project entity.Project, organization entity.Organization) {
 			defer wg.Done()
-			repositoryRealisation := ""
 
-			clonePath := ""
-			switch project.Type {
-			case entity.PROJECT_TYPE_REPOSITORY:
-				clonePath = organization.LocalPath + "/proto/github.com/" + organization.Name + "/" + project.Name
-				repositoryRealisation = strings.TrimPrefix(project.Name, "proto-")
-			case entity.PROJECT_TYPE_USECASE:
-				clonePath = organization.LocalPath + "/proto/github.com/" + organization.Name + "/" + project.Name
-				repositoryRealisation = strings.TrimPrefix(project.Name, "proto-")
+			s.cloneProtoAndRealisation(project, organization)
 
-			case entity.PROJECT_TYPE_SPECIFICATION:
-				clonePath = organization.LocalPath + "/specification/" + project.Name
-				repositoryRealisation = "gateway-" + strings.TrimPrefix(project.Name, "specification-")
-
-			case entity.PROJECT_TYPE_NO_SET:
-			}
-
-			if len(clonePath) > 0 {
-				err = usecase.CloningRepository(project.GithubUrl,
-					clonePath,
-					&http.BasicAuth{
-						Username: envopt.GetEnv("GITHUB_USER"),
-						Password: envopt.GetEnv("GITHUB_TOKEN"),
-					})
-
-				if err != nil {
-					fmt.Printf("Error: %v\n", err)
-				}
-			}
-
-			if len(repositoryRealisation) > 0 {
-				exist, err := helpers.RepoExists(envopt.GetEnv("GITLAB_TOKEN"), organization.GitlabOrganizationName()+"/"+repositoryRealisation)
-				if exist {
-					fmt.Printf("Есть \n", organization.GitlabUrl+repositoryRealisation)
-
-					err = usecase.CloningRepository(organization.GitlabUrl+repositoryRealisation,
-						organization.LocalPath+"/implementation/"+repositoryRealisation,
-						&http.BasicAuth{
-							Username: envopt.GetEnv("GITHUB_USER"),
-							Password: envopt.GetEnv("GITLAB_TOKEN"),
-						})
-
-					if err != nil {
-						fmt.Printf("Error: %v\n", err)
-					}
-					//
-					err := helpers.GitCheckoutDev(organization.LocalPath + "/implementation/" + repositoryRealisation)
-					if err != nil {
-						fmt.Printf("Error: %v\n", err)
-					}
-					project.GitlabUrl = organization.GitlabUrl + repositoryRealisation
-
-					s.DB.Save(&project)
-
-				} else {
-					fmt.Printf("Репозиторий %v не найден\n", organization.GitlabUrl+repositoryRealisation)
-
-				}
-			}
-
-		}(project, organization)
+		}(&wg, project, organization)
 
 	}
 	wg.Wait()
 
-	// клонирование репозиториев c реализацией
-
 	ctx.JSON(200, organization)
+
+}
+
+func (s *Service) createProject(repo *github.Repository, organization *entity.Organization) (project entity.Project) {
+
+	commit, _ := s.getLastCommit(organization.Name, *repo.Name)
+	release, _ := s.getLastRelease(organization.Name, *repo.Name)
+
+	_, repositoryRealisation := entity.GetPath(entity.GetTypeProjectByName(*repo.Name), repo.GetName(), organization)
+
+	project = entity.Project{
+		Type:                   entity.GetTypeProjectByName(*repo.Name),
+		OrganizationId:         organization.Id,
+		Name:                   repo.GetName(),
+		LocalPath:              organization.LocalPath + "/implementation/" + repositoryRealisation,
+		GithubUrl:              "https://github.com/" + organization.Name + "/" + repo.GetName(),
+		PushedAt:               repo.GetPushedAt().UTC(),
+		GithubLastCommitName:   commit.Commit.GetMessage(),
+		GithubLastCommitTime:   commit.Commit.GetAuthor().GetDate(),
+		GithubLastCommitAuthor: commit.Commit.GetAuthor().GetName(),
+		GithubReleaseTag:       release.GetTagName(),
+		LastStructure:          "{}",
+	}
+
+	s.DB.Create(&project)
+	return
+
+}
+
+func (s *Service) cloneProtoAndRealisation(project entity.Project, organization entity.Organization) {
+
+	clonePath, repositoryRealisation := entity.GetPath(project.Type, project.Name, &organization)
+
+	log.Println(project.GithubUrl, clonePath, repositoryRealisation)
+	if len(clonePath) > 0 {
+		err := usecase.CloningRepository(project.GithubUrl,
+			clonePath,
+			&http.BasicAuth{
+				Username: envopt.GetEnv("GITHUB_USER"),
+				Password: envopt.GetEnv("GITHUB_TOKEN"),
+			})
+
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+		}
+	}
+
+	if len(repositoryRealisation) > 0 {
+		exist, err := helpers.RepoExists(envopt.GetEnv("GITLAB_TOKEN"), organization.GitlabOrganizationName()+"/"+repositoryRealisation)
+		if exist {
+			fmt.Printf("Есть \n", organization.GitlabUrl+repositoryRealisation)
+
+			err = usecase.CloningRepository(organization.GitlabUrl+"/"+repositoryRealisation,
+				organization.LocalPath+"/implementation/"+repositoryRealisation,
+				&http.BasicAuth{
+					Username: envopt.GetEnv("GITHUB_USER"),
+					Password: envopt.GetEnv("GITLAB_TOKEN"),
+				})
+
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+			}
+			//
+			err := helpers.GitCheckoutDev(organization.LocalPath + "/implementation/" + repositoryRealisation)
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+			}
+			project.GitlabUrl = organization.GitlabUrl + repositoryRealisation
+
+			s.DB.Save(&project)
+
+		} else {
+			fmt.Printf("Репозиторий %v не найден\n", organization.GitlabUrl+repositoryRealisation)
+
+		}
+	}
+	return
 
 }

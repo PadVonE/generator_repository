@@ -12,7 +12,7 @@ import (
 
 func GenerateGeneral(file string, packageStruct entity.PackageStruct, tableNames []string) (code string, err error) {
 
-	path := filepath.FromSlash("./generators/template/general/" + strings.ToLower(file) + ".txt")
+	path := filepath.FromSlash("./generators/repository/template/general/" + strings.ToLower(file) + ".txt")
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
 		wd, err := os.Getwd()
 		if err != nil {

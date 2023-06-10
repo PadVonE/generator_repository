@@ -11,10 +11,9 @@ import (
 	"text/template"
 )
 
-func GenerateGatewayCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct, nameInterface entity.NameInterface) (code string, err error) {
+func GenerateServiceCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct, nameInterface entity.NameInterface) (code string, err error) {
 
-	path := filepath.FromSlash("./generators/template/gateway/_" + strings.ToLower(nameInterface.Action) + ".txt")
-
+	path := filepath.FromSlash("./generators/repository/template/service/_" + strings.ToLower(nameInterface.Action) + ".txt")
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
 		wd, err := os.Getwd()
 		if err != nil {
@@ -53,7 +52,7 @@ func GenerateGatewayCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 	return
 }
 
-func GatewayListFilter(request entity.Struct, nameInSnake string) (code string, imports string) {
+func ListFilter(request entity.Struct, nameInSnake string) (code string, imports string) {
 	code = ""
 	imports = ""
 
@@ -70,7 +69,21 @@ func GatewayListFilter(request entity.Struct, nameInSnake string) (code string, 
 
 		switch row.Type {
 		case "string":
+
+			if countImports["string"] == 0 {
+				imports += "\t\"strings\""
+			}
+			countImports["string"]++
+
+			if row.Name == "Uuid" {
+				code += "\tif len(request." + row.Name + ") > 0 {\n" +
+					"\t\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " = ?\", request." + row.Name + ")\n" +
+					"\t}\n\n"
+				break
+			}
+
 			code += "\n\t// TODO Проверить правильно ли работает поиск " + row.Name + "(" + strcase.ToSnake(row.Name) + ") in table " + nameInSnake + "\n"
+
 			code += "\tif len(strings.TrimSpace(request." + row.Name + ")) > 0 {\n" +
 				"\t\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " ilike ?\", \"%\"+request." + row.Name + "+\"%\")\n" +
 				"\t}\n\n"
@@ -93,6 +106,9 @@ func GatewayListFilter(request entity.Struct, nameInSnake string) (code string, 
 		case "bool":
 			code += "\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " = ?\", request." + row.Name + ")\n" +
 				"\n\n"
+		case "[]byte":
+			code += "// TODO: Настал то час когда нужно реализовать поиск фильтр по байтам" +
+				"\n\n"
 		case "*timestamp.Timestamp":
 		case "*timestamppb.Timestamp":
 			code += "\n\t// TODO Поставить правильное условие " + row.Name + "(" + strcase.ToSnake(row.Name) + ") in table " + nameInSnake + "\n"
@@ -106,6 +122,19 @@ func GatewayListFilter(request entity.Struct, nameInSnake string) (code string, 
 			if row.Name == "DateEnd" {
 				code += "\tif request." + row.Name + " != nil {\n" +
 					"\t\tquery.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " <= ?\", request." + row.Name + ".AsTime())\n" +
+					"\t}\n\n"
+				break
+			}
+
+			if row.Name == "CreatedStart" {
+				code += "\tif request." + row.Name + " != nil {\n" +
+					"\t\tquery.Where(\"" + usePrefixTable + "created_at >= ?\", request." + row.Name + ".AsTime())\n" +
+					"\t}\n\n"
+				break
+			}
+			if row.Name == "CreatedEnd" {
+				code += "\tif request." + row.Name + " != nil {\n" +
+					"\t\tquery.Where(\"" + usePrefixTable + "created_at <= ?\", request." + row.Name + ".AsTime())\n" +
 					"\t}\n\n"
 				break
 			}

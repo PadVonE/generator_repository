@@ -32,6 +32,10 @@ func (s *Service) CloneRepositoryApi(ctx *gin.Context) {
 		fmt.Printf("project.Id: %v\n", project.Id)
 		return
 	}
+	if project.Type != entity.PROJECT_TYPE_REPOSITORY {
+		fmt.Printf("Not Repository project.Id: %v\n", project.Id)
+		return
+	}
 
 	clonePath := filepath.FromSlash("./tmp/" + project.Name)
 

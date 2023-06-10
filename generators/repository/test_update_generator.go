@@ -13,7 +13,7 @@ import (
 
 func GenerateTestUpdateCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct, nameInterface entity.NameInterface) (code string, err error) {
 
-	path := filepath.FromSlash("./generators/template/test/_update_test.txt")
+	path := filepath.FromSlash("./generators/repository/template/test/_update_test.txt")
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
 		wd, err := os.Getwd()
 		if err != nil {

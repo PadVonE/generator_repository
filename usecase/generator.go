@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"generator/entity"
-	"generator/generators"
+	"generator/generators/repository"
 	"github.com/iancoleman/strcase"
 	log "github.com/sirupsen/logrus"
 	"os"
@@ -300,7 +300,7 @@ func GenerateGatewayFiles(packageInfo entity.PackageStruct, protoInterface entit
 			continue
 		}
 
-		code, err = generators.GenerateGatewayCode(pi, packageInfo, nameInterface)
+		//code, err = gateway_generator.GenerateGatewayCode(&entity.OperationInfo{}, packageInfo, nameInterface)
 
 		if err != nil {
 			log.Error(err)

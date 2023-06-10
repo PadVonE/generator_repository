@@ -33,10 +33,12 @@ type Project struct {
 
 	LastStructure string
 
-	NewTag        string    `gorm:"-"`
-	NewCommitName string    `gorm:"-"`
-	NewCommitDate time.Time `gorm:"-"`
-	HasClone      bool      `gorm:"-"`
+	LastStructureUnmarshal ProjectComponents `gorm:"-"`
+	NewTag                 string            `gorm:"-"`
+	NewCommitName          string            `gorm:"-"`
+	NewCommitDate          time.Time         `gorm:"-"`
+	HasClone               bool              `gorm:"-"`
+	IsNewProject           bool              `gorm:"-"`
 }
 
 func (project *Project) TableName() string {
@@ -59,4 +61,22 @@ func GetTypeProjectByName(name string) int32 {
 
 	return PROJECT_TYPE_NO_SET
 
+}
+
+func GetPath(projectType int32, projectName string, organization *Organization) (clonePath, repositoryRealisation string) {
+	switch projectType {
+	case PROJECT_TYPE_REPOSITORY:
+		clonePath = organization.LocalPath + "/proto/github.com/" + organization.Name + "/" + projectName
+		repositoryRealisation = strings.TrimPrefix(projectName, "proto-")
+	case PROJECT_TYPE_USECASE:
+		clonePath = organization.LocalPath + "/proto/github.com/" + organization.Name + "/" + projectName
+		repositoryRealisation = strings.TrimPrefix(projectName, "proto-")
+
+	case PROJECT_TYPE_SPECIFICATION:
+		clonePath = organization.LocalPath + "/specification/" + projectName
+		repositoryRealisation = "gateway-" + strings.TrimPrefix(projectName, "specification-")
+
+	case PROJECT_TYPE_NO_SET:
+	}
+	return
 }

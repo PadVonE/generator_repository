@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"generator/entity"
-	"generator/generators"
+	"generator/generators/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/iancoleman/strcase"
 	log "github.com/sirupsen/logrus"
@@ -64,12 +64,12 @@ func (s *Service) GenerateEntityApi(ctx *gin.Context) {
 				continue
 			}
 
-			byte, err := format.Source([]byte(code))
+			byteSource, err := format.Source([]byte(code))
 			if err != nil {
 				fmt.Println("Error formatting code:", err)
-				return
+				//return
 			}
-			formattedCodeNewCode := string(byte)
+			formattedCodeNewCode := string(byteSource)
 
 			saveFilePath := servicePath + "/entity/" + strcase.ToSnake(l.Name) + ".go"
 			//if replaceFile {
@@ -89,13 +89,12 @@ func (s *Service) GenerateEntityApi(ctx *gin.Context) {
 					log.Fatalf("Ошибка при чтении файла: %v", err)
 				}
 
-				byte, err := format.Source(file)
+				byteSource, err := format.Source(file)
 				if err != nil {
 					fmt.Println("Error formatting code:", err)
-					return
 				}
 
-				formattedCodeOldCode = string(byte)
+				formattedCodeOldCode = string(byteSource)
 
 				if CompareStrings(formattedCodeOldCode, formattedCodeNewCode) {
 					hasDiff = false
@@ -114,14 +113,6 @@ func (s *Service) GenerateEntityApi(ctx *gin.Context) {
 
 	ctx.JSON(200, response)
 
-}
-
-func removeSpacesAndNewlines(s string) string {
-
-	withoutSpaces := strings.TrimSpace(s)
-	withoutEnter := strings.ReplaceAll(withoutSpaces, "\n", "")
-	withoutNewlines := strings.ReplaceAll(withoutEnter, "\t", "")
-	return withoutNewlines
 }
 
 func removeWhitespace(s string) string {

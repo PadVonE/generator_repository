@@ -9,6 +9,7 @@ import (
 	"github.com/2q4t-plutus/envopt"
 	"github.com/google/go-github/v39/github"
 	log "github.com/sirupsen/logrus"
+	"github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
 	"os"
 	"os/exec"
@@ -40,9 +41,11 @@ func main() {
 	s.DB = DbConnection()
 
 	// Создание клиента GitHub с токеном доступа.
-	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: GitHubToken})
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: envopt.GetEnv("GITHUB_TOKEN")})
 	tc := oauth2.NewClient(context.Background(), ts)
-	s.GitClient = github.NewClient(tc)
+	s.GitHubClient = github.NewClient(tc)
+
+	s.GitLabClient = gitlab.NewClient(nil, envopt.GetEnv("GITLAB_TOKEN"))
 
 	if err := StartWebServer(s); err != nil {
 		log.Printf("failure init server %s", err)

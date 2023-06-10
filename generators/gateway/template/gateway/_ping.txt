@@ -1,0 +1,17 @@
+package service
+
+import (
+	"gateway-wallester-api/models"
+	"gateway-wallester-api/restapi/operations/api_wallester_gateway"
+	"github.com/go-openapi/runtime/middleware"
+)
+
+func (s *Service) PingHandler() api_wallester_gateway.PingHandlerFunc {
+	return func(params api_wallester_gateway.PingParams) middleware.Responder {
+		responder := api_wallester_gateway.NewPingOK()
+		response := &models.PingResponse{
+			Status: "OK",
+		}
+		return responder.WithPayload(response)
+	}
+}

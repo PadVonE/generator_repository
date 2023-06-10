@@ -1,0 +1,50 @@
+package service
+
+import (
+	"context"
+	"{{ .Names.GatewayProjectNameInKebab}}/models"
+	"{{ .Names.GatewayProjectNameInKebab}}/restapi/operations/{{ .Names.GatewayTagNameInSnake}}"
+	"github.com/{{ .Names.RelatedOrganisationNameInKebab}}/proto-{{ .Names.RelatedProjectNameInKebab}}"
+	"github.com/getsentry/sentry-go"
+	"github.com/go-openapi/runtime/middleware"
+)
+
+func (s *Service) {{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}() {{ .Names.GatewayTagNameInSnake}}.{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}HandlerFunc {
+	return func(params {{ .Names.GatewayTagNameInSnake}}.{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}Params) middleware.Responder {
+		responder := {{ .Names.GatewayTagNameInSnake}}.New{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}OK()
+
+		response, err := s.delete{{ .Names.GatewayMethodName}}(params)
+		if err != nil {
+			sentry.CaptureException(err)
+		}
+
+		return responder.WithPayload(response)
+	}
+}
+
+func (s *Service) delete{{ .Name}}(params {{ .Names.GatewayTagNameInSnake}}.{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}Params) (*models.{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}Response, error) {
+	response := &models.{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}Response{}
+	response.Status = models.StatusOK
+
+	info, ok := s.GetTokenInfo(params.HTTPRequest.Header.Get(xAuthToken))
+	if !ok {
+		response.Status = models.StatusBADCREDENTIALS
+		return response, nil
+	}
+
+	if !SliceIsIntersect(info.UserRoles, []string{roleAdmin}) {
+		response.Status = models.StatusBADCREDENTIALS
+		return response, nil
+	}
+
+	request := {{ .Names.RelatedProjectNameInSnake}}.{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}Request{
+		Id: params.ID,
+	}
+
+	if _, err := s.{{ .Names.RelatedProjectNameInPascal}}.{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}(context.Background(), &request); err != nil {
+		response.Status = models.StatusINTERNALERROR
+		return response, err
+	}
+
+	return response, nil
+}

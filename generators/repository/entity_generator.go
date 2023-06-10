@@ -13,7 +13,7 @@ import (
 
 func GenerateEntity(strc entity.Struct, packageStruct entity.PackageStruct, createFunc bool, updateFunc bool) (code string, err error) {
 
-	path := filepath.FromSlash("./generators/template/_entity.txt")
+	path := filepath.FromSlash("./generators/repository/template/_entity.txt")
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
 		wd, err := os.Getwd()
 		if err != nil {
@@ -238,6 +238,8 @@ func UpdateProtoTo(strc entity.Struct, pkg string) (code string) {
 		case "[]string":
 			code += "\t\t" + row.Name + ": proto." + row.Name + ",\n"
 		case "[]byte":
+			code += "\t\t" + row.Name + ": proto." + row.Name + ",\n"
+		case "[]int32":
 			code += "\t\t" + row.Name + ": proto." + row.Name + ",\n"
 		default:
 			if strings.Contains(row.Type, "Type") || strings.Contains(row.Type, "Status") {

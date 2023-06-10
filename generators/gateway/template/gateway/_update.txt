@@ -1,0 +1,73 @@
+package service
+
+import (
+	"context"
+	"{{ .Names.GatewayProjectNameInKebab}}/models"
+	"{{ .Names.GatewayProjectNameInKebab}}/restapi/operations/{{ .Names.GatewayTagNameInSnake}}"
+	"github.com/{{ .Names.RelatedOrganisationNameInKebab}}/proto-{{ .Names.RelatedProjectNameInKebab}}"
+	"github.com/getsentry/sentry-go"
+	"github.com/go-openapi/runtime/middleware"
+	"github.com/go-openapi/strfmt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+func (s *Service) {{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}() {{ .Names.GatewayTagNameInSnake}}.{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}HandlerFunc {
+	return func(params {{ .Names.GatewayTagNameInSnake}}.{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}Params) middleware.Responder {
+		responder := {{ .Names.GatewayTagNameInSnake}}.New{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}OK()
+
+		response, err := s.update{{ .Names.GatewayMethodName}}(params)
+		if err != nil {
+			sentry.CaptureException(err)
+		}
+
+		return responder.WithPayload(response)
+	}
+}
+
+func (s *Service) update{{ .Names.GatewayMethodName}}(params {{ .Names.GatewayTagNameInSnake}}.{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}Params) (*models.{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}Response, error) {
+	response := &models.{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}Response{}
+	response.Status = models.StatusOK
+
+	info, ok := s.GetTokenInfo(params.HTTPRequest.Header.Get(xAuthToken))
+	if !ok {
+		response.Status = models.StatusBADCREDENTIALS
+		return response, nil
+	}
+
+	if !SliceIsIntersect(info.UserRoles, []string{roleAdmin}) {
+		response.Status = models.StatusBADCREDENTIALS
+		return response, nil
+	}
+
+    get{{ .Names.GatewayMethodName}}Request := {{ .Names.RelatedProjectNameInSnake}}.{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}Request{
+		Id: params.ID,
+	}
+
+	data, err := s.{{ .Names.RelatedProjectNameInSnake}}.{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}(context.Background(), &get{{ .Names.GatewayMethodName}}Request)
+	if err != nil && status.Code(err) != codes.NotFound {
+		response.Status = models.StatusINTERNALERROR
+		return response, err
+	}
+
+	if err != nil && status.Code(err) == codes.NotFound {
+		response.Status = models.StatusNOCONTENT
+		return response, nil
+	}
+
+	update{{ .Names.GatewayMethodName}}Request := {{ .Names.RelatedProjectNameInPascal}}.{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}Request{
+{{ .ListRequest }}
+	}
+
+	item, err := s.{{ .Names.RelatedProjectNameInPascal}}.{{ .Names.GatewayMethodAction}}{{ .Names.GatewayMethodName}}(context.Background(), &update{{ .Names.GatewayMethodName}}Request)
+	if err != nil {
+		response.Status = models.StatusINTERNALERROR
+		return response, err
+	}
+
+	response.Payload.Item = &models.{{ .Names.GatewayMethodName}}{
+{{ .ListResponse }}
+	}
+
+	return response, nil
+}

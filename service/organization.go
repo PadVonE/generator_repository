@@ -70,24 +70,18 @@ func (s *Service) Organization(ctx *gin.Context) {
 				OrganizationId: organization.Id,
 				Name:           *repo.Name,
 				LocalPath:      *repo.FullName,
-				Type:           1,
+				Type:           entity.GetTypeProjectByName(*repo.Name),
+				IsNewProject:   true,
 			}
 			projects = append([]entity.Project{project}, projects...)
 		}
 
 	}
 
-	//projects
-
-	//commit, _ := s.getLastCommit(organization, *repos[0].Name, token)
-
-	//byte, err := json.Marshal(commit)
-	//log.Println(string(byte))
 	ctx.HTML(200, "organization_list", gin.H{
 		"Projects":     projects,
 		"Organization": organization,
 	})
-	//SetPayload(ctx, viewData)
 	ctx.Next()
 }
 
@@ -107,7 +101,7 @@ func (s *Service) getOrganizationRepositories(organization string) ([]*github.Re
 
 	var allRepos []*github.Repository
 	for {
-		repos, resp, err := s.GitClient.Repositories.ListByOrg(ctx, organization, opt)
+		repos, resp, err := s.GitHubClient.Repositories.ListByOrg(ctx, organization, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -123,7 +117,7 @@ func (s *Service) getOrganizationRepositories(organization string) ([]*github.Re
 
 func (s *Service) getRepository(owner, repo string) (*github.Repository, error) {
 	ctx := context.Background()
-	repository, _, err := s.GitClient.Repositories.Get(ctx, owner, repo)
+	repository, _, err := s.GitHubClient.Repositories.Get(ctx, owner, repo)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +128,7 @@ func (s *Service) getLastCommit(owner, repoName string) (*github.RepositoryCommi
 	ctx := context.Background()
 
 	// Получение списка коммитов с лимитом 1.
-	commits, _, err := s.GitClient.Repositories.ListCommits(ctx, owner, repoName, &github.CommitsListOptions{
+	commits, _, err := s.GitHubClient.Repositories.ListCommits(ctx, owner, repoName, &github.CommitsListOptions{
 		ListOptions: github.ListOptions{PerPage: 1},
 	})
 	if err != nil {
@@ -152,7 +146,7 @@ func (s *Service) getLastRelease(owner, repoName string) (*github.RepositoryRele
 	ctx := context.Background()
 
 	// Получение списка релизов с лимитом 1.
-	releases, _, err := s.GitClient.Repositories.ListReleases(ctx, owner, repoName, &github.ListOptions{PerPage: 1})
+	releases, _, err := s.GitHubClient.Repositories.ListReleases(ctx, owner, repoName, &github.ListOptions{PerPage: 1})
 	if err != nil {
 		return nil, err
 	}
