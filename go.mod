@@ -4,11 +4,13 @@ go 1.19
 
 require (
 	github.com/2q4t-plutus/envopt v1.0.0
+	github.com/fatih/color v1.7.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-openapi/loads v0.21.2
 	github.com/go-openapi/spec v0.20.6
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/google/go-github/v39 v39.2.0
+	github.com/gorilla/websocket v1.4.2
 	github.com/iancoleman/strcase v0.2.0
 	github.com/lib/pq v1.10.8
 	github.com/sirupsen/logrus v1.9.0
@@ -54,6 +56,7 @@ require (
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
 	github.com/leodido/go-urn v1.2.3 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
+	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect

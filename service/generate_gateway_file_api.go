@@ -15,7 +15,7 @@ import (
 )
 
 func (s *Service) GenerateGatewayFileApi(ctx *gin.Context) {
-	log.Println("\033[35m", "\n\nGateway files", "\033[0m")
+	log.Info("Gateway files")
 
 	//prefixList := []string{"List"}
 	prefixList := []string{"List", "Get", "Create", "Update", "Delete", "Ping"}
@@ -30,7 +30,7 @@ func (s *Service) GenerateGatewayFileApi(ctx *gin.Context) {
 		fmt.Printf("Error: %v\n", err)
 		return
 	}
-
+	s.LogGlobal(" --- Gateway files --- " + project.Name)
 	org := entity.Organization{}
 
 	query := s.DB.Model(&org)
@@ -63,7 +63,7 @@ func (s *Service) GenerateGatewayFileApi(ctx *gin.Context) {
 	// Парсим все проекты в поисках нужных нам методов
 	err = ParseProjects(allRepository)
 	if err != nil {
-		log.Fatalf("Failed to parse projects: %v", err)
+		log.Error("Failed to parse projects: %v", err)
 	}
 
 	gatewayAction := ""
@@ -73,7 +73,6 @@ func (s *Service) GenerateGatewayFileApi(ctx *gin.Context) {
 	for _, pc := range projectComponents.Path {
 
 		for _, operation := range pc.Operations {
-			log.Println(operation.NameMethod)
 
 			relatedProject, err := FindProjectsByOperations(allRepository, operation.NameMethod)
 			if relatedProject.Id == 0 {
@@ -91,7 +90,7 @@ func (s *Service) GenerateGatewayFileApi(ctx *gin.Context) {
 			}
 			if len(gatewayAction) == 0 {
 				log.Warn("Not found Action in name method " + operation.NameMethod)
-				continue
+				//continue
 			}
 
 			nameServiceGateway := "gateway-" + strings.TrimPrefix(project.Name, "specification-")
@@ -105,7 +104,7 @@ func (s *Service) GenerateGatewayFileApi(ctx *gin.Context) {
 
 			byteSource, err := format.Source([]byte(code))
 			if err != nil {
-				fmt.Println("Error formatting code:", err)
+				log.Error("Error formatting code:", err)
 				return
 			}
 			formattedCodeNewCode := string(byteSource)
@@ -121,12 +120,12 @@ func (s *Service) GenerateGatewayFileApi(ctx *gin.Context) {
 
 				file, err := os.ReadFile(saveFilePath)
 				if err != nil {
-					log.Fatalf("Ошибка при чтении файла: %v", err)
+					log.Errorf("Ошибка при чтении файла: %v", err)
 				}
 
 				byteSource, err := format.Source(file)
 				if err != nil {
-					fmt.Println("Error formatting code:", err)
+					log.Error("Error formatting code:", err)
 					return
 				}
 
@@ -136,7 +135,6 @@ func (s *Service) GenerateGatewayFileApi(ctx *gin.Context) {
 					hasDiff = false
 				}
 			}
-			log.Println(saveFilePath)
 
 			response = append(response, entity.FilesPreview{
 				FilePath: saveFilePath,
@@ -168,7 +166,6 @@ func FindProjectsByOperations(allProject []entity.Project, operation string) (pr
 
 	for _, project := range allProject {
 		for _, structObj := range project.LastStructureUnmarshal.ListOfFunction.Methods {
-			//log.Println(operation, "=======", structObj.NameMethod)
 			if structObj.NameMethod == operation {
 				projectOperation = project
 				break

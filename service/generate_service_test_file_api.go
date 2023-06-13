@@ -13,7 +13,7 @@ import (
 )
 
 func (s *Service) GenerateServiceTestFileApi(ctx *gin.Context) {
-	log.Println("\033[35m", "\n\nTEST files", "\033[0m")
+	log.Info("\n\nTEST files")
 
 	projectID := ctx.Query("project_id")
 
@@ -28,7 +28,10 @@ func (s *Service) GenerateServiceTestFileApi(ctx *gin.Context) {
 
 	servicePath := filepath.FromSlash(project.LocalPath)
 
+	s.LogGlobal(" --- TEST files --- " + project.Name)
+
 	projectComponents := entity.ProjectComponents{}
+
 	err = json.Unmarshal([]byte(project.LastStructure), &projectComponents)
 	response := []entity.FilesPreview{}
 

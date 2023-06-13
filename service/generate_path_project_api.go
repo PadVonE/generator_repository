@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"generator/entity"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 )
@@ -31,7 +32,7 @@ func (s *Service) GeneratePathProjectRepositoryApi(ctx *gin.Context) {
 
 	err = os.MkdirAll(servicePath, os.ModePerm)
 	if err != nil {
-		fmt.Printf("Ошибка при создании папок: %v\n", err)
+		log.Error("Ошибка при создании папок: %v\n", err)
 		return
 	}
 
@@ -41,7 +42,7 @@ func (s *Service) GeneratePathProjectRepositoryApi(ctx *gin.Context) {
 
 		err = os.MkdirAll(p, os.ModePerm)
 		if err != nil {
-			fmt.Printf("Ошибка при создании папок: %v\n", err)
+			log.Error("Ошибка при создании папок: %v\n", err)
 			return
 		}
 	}

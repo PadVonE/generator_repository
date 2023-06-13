@@ -45,7 +45,6 @@ func GenerateGatewayCode(oi *entity.OperationInfo, gatewayName string, gatewayAc
 
 	path := filepath.FromSlash("./generators/gateway/template/gateway/_" + strings.ToLower(gatewayAction) + ".txt")
 
-	log.Println(path)
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
 		wd, err := os.Getwd()
 		if err != nil {
@@ -182,9 +181,9 @@ func gatewayListResponse(oi *entity.OperationInfo, nameInSnake string) (code str
 		if row.Name == "limit" || row.Name == "offset" {
 			continue
 		}
-
-		nameWithBigID := strings.ReplaceAll(strcase.ToCamel(row.Name), "Id", "ID")
-		nameWithBigID = strings.ReplaceAll(strcase.ToCamel(row.Name), "Uuid", "UUID")
+		nameWithBigID := strcase.ToCamel(row.Name)
+		nameWithBigID = strings.ReplaceAll(nameWithBigID, "Id", "ID")
+		nameWithBigID = strings.ReplaceAll(nameWithBigID, "Uuid", "UUID")
 
 		switch row.Type {
 		case "string":
@@ -223,7 +222,7 @@ func gatewayListResponse(oi *entity.OperationInfo, nameInSnake string) (code str
 			code += "\n\n"
 			code += "\t// TODO not implemented " + row.Name + "(" + strcase.ToSnake(row.Name) + ") in table "
 			code += "\n\n"
-			log.Warn("Type: " + row.Name + "  " + row.Type + " not implemented (Generate Gateway ListFilter)")
+			log.Warn("Type: " + row.Name + "  " + row.Type + " not implemented (Generate Gateway ListResponse)")
 		}
 	}
 

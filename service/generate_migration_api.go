@@ -20,7 +20,7 @@ type MigrationResponse struct {
 }
 
 func (s *Service) GenerateMigrationApi(ctx *gin.Context) {
-	log.Println("\033[35m", "\n\nMigration file", "\033[0m")
+	log.Info("\n\nMigration file")
 
 	projectID := ctx.Query("project_id")
 
@@ -32,7 +32,7 @@ func (s *Service) GenerateMigrationApi(ctx *gin.Context) {
 		fmt.Printf("Error: %v\n", err)
 		return
 	}
-
+	s.LogGlobal(" --- Migration file --- " + project.Name)
 	servicePath := filepath.FromSlash(project.LocalPath)
 
 	projectComponents := entity.ProjectComponents{}

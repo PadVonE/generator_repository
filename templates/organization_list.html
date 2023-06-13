@@ -3,170 +3,216 @@
 
 
 <div class="jumbotron jumbotron-fluid">
-    <div class="container">
+
         <!-- Example row of columns -->
-        <div class="row">
+        <div class="row" >
+            <div class="col-md-8 col-sm-8 col-xs-8">
+                <div class="container">
+                    <!-- Example row of columns -->
+                    <div class="row">
 
 
-            <div class="col-md-12 col-sm-12 col-xs-12">
-                <div class="x_panel">
-                    <div class="x_title">
-                        <h2 class="organization" data-id="{{ .Organization.Id }}">Organization <small>{{
-                            .Organization.Name }}</small></h2>
+                        <div class="col-md-12 col-sm-12 col-xs-12">
+                            <div class="x_panel">
+                                <div class="x_title">
+                                    <h2 class="organization" data-id="{{ .Organization.Id }}">Organization <small>{{
+                                        .Organization.Name }}</small></h2>
 
-                        <div class="clearfix"></div>
-                    </div>
-                    <button class="btn btn-primary pressAllCloneRep">Clone all repositories</button>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <button class="btn btn-primary pressAllCloneRep">Clone all repositories</button>
 
-                    <div class="x_content">
+                                <div class="x_content">
 
-                        <p>Add class <code>bulk_action</code> to table for bulk actions options on row select</p>
+                                    <p>Add class <code>bulk_action</code> to table for bulk actions options on row
+                                        select</p>
 
-                        <div class="table-responsive">
-                            <table class="table table-striped jambo_table bulk_action">
-                                <thead>
-                                <tr class="headings">
-                                    <th>
-                                        <input type="checkbox" id="check-all" class="flat">
-                                    </th>
-                                    <th class="column-title">Id</th>
-                                    <th class="column-title">Name</th>
-                                    <th class="column-title">Type</th>
-                                    <th class="column-title">Github Repository</th>
-                                    <th class="column-title">Gitlab Repository</th>
-                                    <th class="column-title no-link last"><span class="nobr">Actions</span>
-                                    </th>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped jambo_table bulk_action">
+                                            <thead>
+                                            <tr class="headings">
+                                                <th>
+                                                    <input type="checkbox" id="check-all" class="flat">
+                                                </th>
+                                                <th class="column-title">Id</th>
+                                                <th class="column-title">Name</th>
+                                                <th class="column-title">Type</th>
+                                                <th class="column-title">Github Repository</th>
+                                                <th class="column-title">Gitlab Repository</th>
+                                                <th class="column-title no-link last"><span class="nobr">Actions</span>
+                                                </th>
 
-                                </tr>
-                                </thead>
+                                            </tr>
+                                            </thead>
 
-                                <tbody>
-                                {{ range .Projects }}
-                                <tr class="even pointer table-color-{{ .Type }}">
-                                    <td class="a-center ">
-                                        <input type="checkbox" class="flat" name="table_records">
-                                    </td>
-                                    <td>{{ .Id }}</td>
-                                    <td>{{ .Name }}
-                                        <div><span class="badge badge-primary">{{ .LocalPath}}</span></div>
-                                    </td>
-                                    <td>{{ .Type }}</td>
-                                    <td><span class="badge badge-dark">{{ .GithubLastCommitAuthor }}</span> <span
-                                            class="badge badge-primary">{{ .GithubLastCommitName }}</span>
-                                        {{ .GithubLastCommitTime | timeAgo }}
+                                            <tbody>
+                                            {{ range .Projects }}
+                                            <tr class="even pointer table-color-{{ .Type }}">
+                                                <td class="a-center ">
+                                                    <input type="checkbox" class="flat" name="table_records">
+                                                </td>
+                                                <td>{{ .Id }}</td>
+                                                <td>{{ .Name }}
+                                                    <div><span class="badge badge-primary">{{ .LocalPath}}</span></div>
+                                                </td>
+                                                <td>{{ .Type }}</td>
+                                                <td><span class="badge badge-dark">{{ .GithubLastCommitAuthor }}</span>
+                                                    <span
+                                                            class="badge badge-primary">{{ .GithubLastCommitName }}</span>
+                                                    {{ .GithubLastCommitTime | timeAgo }}
 
-                                        {{ if .NewCommitName }}
-                                        <br><span class="badge badge-warning">{{ .NewCommitName}}</span> {{
-                                        .NewCommitDate | timeAgo }}
-                                        {{ end }}
-                                        <br>
-                                        <span class="badge badge-secondary">{{ .GithubReleaseTag }}</span>
-                                        {{ if .NewTag }}
-                                        ->
-                                        <span class="badge badge-success">{{ .NewTag }}</span>
-                                        {{ end }}
-                                    </td>
-                                    <td><span class="badge badge-dark">{{ .GitlabLastCommitAuthor }}</span> <span
-                                            class="badge badge-primary">{{ .GitlabLastCommitName }}</span>
-                                        {{ .GitlabLastCommitTime | timeAgo }}
+                                                    {{ if .NewCommitName }}
+                                                    <br><span class="badge badge-warning">{{ .NewCommitName}}</span> {{
+                                                    .NewCommitDate | timeAgo }}
+                                                    {{ end }}
+                                                    <br>
+                                                    <span class="badge badge-secondary">{{ .GithubReleaseTag }}</span>
+                                                    {{ if .NewTag }}
+                                                    ->
+                                                    <span class="badge badge-success">{{ .NewTag }}</span>
+                                                    {{ end }}
+                                                </td>
+                                                <td><span class="badge badge-dark">{{ .GitlabLastCommitAuthor }}</span>
+                                                    <span
+                                                            class="badge badge-primary">{{ .GitlabLastCommitName }}</span>
+                                                    {{ .GitlabLastCommitTime | timeAgo }}
 
-                                        <!--                                        {{ if .NewCommitName }}-->
-                                        <!--                                        <br><span class="badge badge-warning">{{ .NewCommitName}}</span> {{ .NewCommitDate | timeAgo }}-->
-                                        <!--                                        {{ end }}-->
-                                        <br>
-                                        <span class="badge badge-secondary">{{ .GitlabReleaseTag }}</span>
-                                        <!--                                        {{ if .NewTag }}-->
-                                        <!--                                        ->-->
-                                        <!--                                        <span class="badge badge-success">{{ .NewTag }}</span>-->
-                                        <!--                                        {{ end }}-->
-                                    </td>
+                                                    <!--                                        {{ if .NewCommitName }}-->
+                                                    <!--                                        <br><span class="badge badge-warning">{{ .NewCommitName}}</span> {{ .NewCommitDate | timeAgo }}-->
+                                                    <!--                                        {{ end }}-->
+                                                    <br>
+                                                    <span class="badge badge-secondary">{{ .GitlabReleaseTag }}</span>
+                                                    <!--                                        {{ if .NewTag }}-->
+                                                    <!--                                        ->-->
+                                                    <!--                                        <span class="badge badge-success">{{ .NewTag }}</span>-->
+                                                    <!--                                        {{ end }}-->
+                                                </td>
 
-                                    <td class=" last">
-                                        {{ if .IsNewProject }}
+                                                <td class=" last">
+                                                    {{ if .IsNewProject }}
 
-                                        <div class="row">
-                                            <div class="col-md-3">
-                                                <div class="btn btn-danger create-new-project" title="Create project"
-                                                     data-project="{{ .Name }}"><i class="fa fa-plus"></i></div>
-                                            </div>
-                                            <div class="col-md-9">
-                                                <input type="checkbox" name="" checked> <label> Файлы реализации</label>
-                                                <br>
-                                                <input type="checkbox" name="" checked> <label>
+                                                    <div class="row">
+                                                        <div class="col-md-3">
+                                                            <div class="btn btn-danger create-new-project"
+                                                                 title="Create project"
+                                                                 data-project="{{ .Name }}"><i class="fa fa-plus"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-9">
+                                                            <input type="checkbox" name="" checked> <label> Файлы
+                                                            реализации</label>
+                                                            <br>
+                                                            <input type="checkbox" name="" checked> <label>
 
-                                                {{ if eq .Type 1 }}Протофайлы {{ end }}
-                                                {{ if eq .Type 2 }}Протофайлы {{ end }}
-                                                {{ if eq .Type 3 }}Файлы спецификаций {{ end }}
+                                                            {{ if eq .Type 1 }}Протофайлы {{ end }}
+                                                            {{ if eq .Type 2 }}Протофайлы {{ end }}
+                                                            {{ if eq .Type 3 }}Файлы спецификаций {{ end }}
 
-                                            </label>
-                                            </div>
-                                        </div>
-                                        {{ else }}
+                                                        </label>
+                                                        </div>
+                                                    </div>
+                                                    {{ else }}
 
 
-                                        {{ if eq .Type 1 }}
-                                        <div class="btn btn-success cloneRep" title="Clone repository"
-                                             data-project-id="{{ .Id }}"><i class="fa fa-download"></i></div>
+                                                    {{ if eq .Type 1 }}
+                                                    <div class="btn btn-success cloneRep" title="Clone repository"
+                                                         data-project-id="{{ .Id }}"><i class="fa fa-download"></i>
+                                                    </div>
 
-                                        <button class="btn btn-primary loadData" data-type="entity"
-                                                data-project-id="{{ .Id }}" title="entity" {{ if not .HasClone
-                                                }}disabled{{ end }}>E
-                                        </button>
-                                        <button class="btn btn-primary loadData" data-type="migration"
-                                                data-project-id="{{ .Id }}" title="Migration" {{ if not .HasClone
-                                                }}disabled{{ end }}>M
-                                        </button>
-                                        <button class="btn btn-primary loadData" data-type="service"
-                                                data-project-id="{{ .Id }}" title="Service" {{ if not .HasClone
-                                                }}disabled{{ end }}>S
-                                        </button>
-                                        <button class="btn btn-primary loadData" data-type="test"
-                                                data-project-id="{{ .Id }}" title="Test File" {{ if not .HasClone
-                                                }}disabled{{ end }}>T
-                                        </button>
-                                        <button class="btn btn-primary loadData" data-type="general"
-                                                data-project-id="{{ .Id }}" title="General File" {{ if not .HasClone
-                                                }}disabled{{ end }}>G
-                                        </button>
-                                        <button class="btn btn-warning loadData" data-type="all"
-                                                data-project-id="{{ .Id }}" title="General File" {{ if not .HasClone
-                                                }}disabled{{ end }}>All
-                                        </button>
+                                                    <button class="btn btn-primary loadData" data-type="entity"
+                                                            data-project-id="{{ .Id }}" title="entity" {{ if not
+                                                            .HasClone
+                                                            }}disabled{{ end }}>E
+                                                    </button>
+                                                    <button class="btn btn-primary loadData" data-type="migration"
+                                                            data-project-id="{{ .Id }}" title="Migration" {{ if not
+                                                            .HasClone
+                                                            }}disabled{{ end }}>M
+                                                    </button>
+                                                    <button class="btn btn-primary loadData" data-type="service"
+                                                            data-project-id="{{ .Id }}" title="Service" {{ if not
+                                                            .HasClone
+                                                            }}disabled{{ end }}>S
+                                                    </button>
+                                                    <button class="btn btn-primary loadData" data-type="test"
+                                                            data-project-id="{{ .Id }}" title="Test File" {{ if not
+                                                            .HasClone
+                                                            }}disabled{{ end }}>T
+                                                    </button>
+                                                    <button class="btn btn-primary loadData" data-type="general"
+                                                            data-project-id="{{ .Id }}" title="General File" {{ if not
+                                                            .HasClone
+                                                            }}disabled{{ end }}>G
+                                                    </button>
+                                                    <button class="btn btn-warning loadData" data-type="all"
+                                                            data-project-id="{{ .Id }}" title="General File" {{ if not
+                                                            .HasClone
+                                                            }}disabled{{ end }}>All
+                                                    </button>
 
-                                        {{ end }}
+                                                    {{ end }}
 
-                                        {{ if eq .Type 3 }}
-                                        <div class="btn btn-success cloneGateway" title="Clone gateway"
-                                             data-project-id="{{ .Id }}"><i class="fa fa-download"></i></div>
+                                                    {{ if eq .Type 3 }}
+                                                    <div class="btn btn-success cloneGateway" title="Clone gateway"
+                                                         data-project-id="{{ .Id }}"><i class="fa fa-download"></i>
+                                                    </div>
 
-                                        <button class="btn btn-warning loadData" data-type="gateway"
-                                                data-project-id="{{ .Id }}" title="General File" {{ if not .HasClone
-                                                }}disabled{{ end }}>All
-                                        </button>
+                                                    <button class="btn btn-warning loadData" data-type="gateway"
+                                                            data-project-id="{{ .Id }}" title="General File" {{ if not
+                                                            .HasClone
+                                                            }}disabled{{ end }}>All
+                                                    </button>
 
-                                        {{ end }}
+                                                    {{ end }}
 
-                                        {{ end }}
+                                                    {{ end }}
 
-                                    </td>
+                                                </td>
 
-                                </tr>
-                                <tr>
-                                    <td colspan="100%">
-                                        <div class="data-projectid data-projectid-{{ .Id }}"></div>
-                                    </td>
-                                </tr>
-                                {{ end }}
-                                </tbody>
-                            </table>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="100%">
+                                                    <div class="data-projectid data-projectid-{{ .Id }}"></div>
+                                                </td>
+                                            </tr>
+                                            {{ end }}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                </div>
+                            </div>
                         </div>
-
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-4 col-xs-4">
+                <div class="container">
+                    <!-- Example row of columns -->
+                    <div class="row">
+                        <div class="content come-in">
+                            <header>
+                                <div class="buttons">
+                                    <div class="close-console" title="Очистить"></div>
+                                    <div class="full-console" title="На весь экран"></div>
+                                    <div class="mini-console" title="Минимизировать"></div>
+                                </div>
+                                <h1>gschier@{{ .Organization.Name }}: {{ .Organization.LocalPath}} (zsh)</h1>
+                            </header>
+                            <section class="console-container console">
+                                <p class="prompt">
+                                    <span class="green">{{ .Organization.Name }}</span>
+                                    <span class="yellow">{{ .Organization.GithubUrl }}</span>
+                                    <span class="red">⇒</span> {{ .Organization.LocalPath}}
+                                </p>
+                            </section>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+
 
 
 <!-- Modal -->
@@ -276,6 +322,24 @@
     }
 
     $(document).ready(function () {
+
+
+        // CONSOLE
+
+
+
+        $('.close-console').on('click', function () {
+            $(".console-container").html("<p class='prompt'>"+$(".console-container p:first-child").html()+"</p>")
+        });
+        $('.full-console').on('click', function () {
+            $(".come-in").addClass("full-size")
+        });
+        $('.mini-console').on('click', function () {
+            $(".come-in").removeClass("full-size")
+
+        });
+
+
         $('.loadData').on('click', function () {
             let type = [$(this).data("type")]
             const projectId = $(this).data('project-id');
@@ -291,23 +355,23 @@
         var button = $('.btn.btn-danger.create-new-project');
         var originalButtonHtml = button.html();  // сохраняем оригинальное содержимое кнопки
 
-        button.click(function() {
+        button.click(function () {
             var organizationId = $('h2.organization').data('id');
             var projectName = $(this).data('project');
 
             var loadingIcon = $('<i class="fa fa-spinner fa-spin"></i>');
             button.html(loadingIcon);  // заменяем содержимое кнопки на иконку загрузки
 
-            $.get('/api/create-project', { organization_id: organizationId, project_name: projectName })
-                .done(function(data) {
+            $.get('/api/create-project', {organization_id: organizationId, project_name: projectName})
+                .done(function (data) {
                     // успешное выполнение запроса
                     location.reload(); // обновить страницу
                 })
-                .fail(function() {
+                .fail(function () {
                     // ошибка выполнения запроса
                     console.error('Не удалось создать проект');
                 })
-                .always(function() {
+                .always(function () {
                     // возвращаем оригинальное содержимое кнопки независимо от результата запроса
                     button.html(originalButtonHtml);
                 });

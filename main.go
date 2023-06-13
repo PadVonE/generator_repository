@@ -8,6 +8,7 @@ import (
 	"generator/usecase"
 	"github.com/2q4t-plutus/envopt"
 	"github.com/google/go-github/v39/github"
+	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
@@ -19,6 +20,7 @@ import (
 )
 
 func init() {
+
 	// Log as JSON instead of the default ASCII formatter.
 	log.SetFormatter(&log.TextFormatter{})
 
@@ -28,13 +30,15 @@ func init() {
 
 	// Only log the warning severity or above.
 	log.SetLevel(log.InfoLevel)
+
 }
 
 func main() {
+
 	//var err error
 	envopt.Validate("envopt.json")
 
-	openbrowser("http://localhost:8090/")
+	//openbrowser("http://localhost:8090/")
 
 	s := &service.Service{}
 
@@ -46,6 +50,10 @@ func main() {
 	s.GitHubClient = github.NewClient(tc)
 
 	s.GitLabClient = gitlab.NewClient(nil, envopt.GetEnv("GITLAB_TOKEN"))
+
+	s.WsClients = make(map[*websocket.Conn]bool)
+
+	go initWebSocketHook(s)
 
 	if err := StartWebServer(s); err != nil {
 		log.Printf("failure init server %s", err)

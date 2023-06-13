@@ -20,6 +20,8 @@ func handler(s *service.Service) http.Handler {
 	handler.Static("/js", "./templates/js/")
 	handler.Static("/images", "./templates/images/")
 
+	handler.GET("/ws", s.WsHandleConnections)
+
 	front := handler.Group("/") //s.ResponseHtmlWriter
 
 	front.GET("/", s.Index)

@@ -15,7 +15,7 @@ import (
 )
 
 func (s *Service) GenerateGeneralFileApi(ctx *gin.Context) {
-	log.Println("\033[35m", "\n\nGeneral Files file", "\033[0m")
+	log.Info("General Files file")
 
 	projectID := ctx.Query("project_id")
 
@@ -29,6 +29,8 @@ func (s *Service) GenerateGeneralFileApi(ctx *gin.Context) {
 	}
 
 	servicePath := filepath.FromSlash(project.LocalPath)
+
+	s.LogGlobal(" --- General Files --- " + project.Name)
 
 	projectComponents := entity.ProjectComponents{}
 	err = json.Unmarshal([]byte(project.LastStructure), &projectComponents)

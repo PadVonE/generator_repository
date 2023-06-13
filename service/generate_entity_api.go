@@ -16,8 +16,7 @@ import (
 )
 
 func (s *Service) GenerateEntityApi(ctx *gin.Context) {
-
-	log.Println("\033[35m", "\n\nEntity files", "\033[0m")
+	log.Info("\n\nEntity files")
 
 	projectID := ctx.Query("project_id")
 
@@ -29,6 +28,8 @@ func (s *Service) GenerateEntityApi(ctx *gin.Context) {
 		fmt.Printf("Error: %v\n", err)
 		return
 	}
+
+	s.LogGlobal(" --- Entity files --- " + project.Name)
 
 	servicePath := filepath.FromSlash(project.LocalPath)
 
@@ -58,6 +59,8 @@ func (s *Service) GenerateEntityApi(ctx *gin.Context) {
 				}
 			}
 
+			log.Info("File: /entity/" + strcase.ToSnake(l.Name) + ".go")
+
 			code, err := generators.GenerateEntity(l, projectComponents.PackageStruct, createFunction, updateFunction)
 			if err != nil {
 				log.Error(err)
@@ -66,7 +69,7 @@ func (s *Service) GenerateEntityApi(ctx *gin.Context) {
 
 			byteSource, err := format.Source([]byte(code))
 			if err != nil {
-				fmt.Println("Error formatting code:", err)
+				log.Error("Error formatting code:", err)
 				//return
 			}
 			formattedCodeNewCode := string(byteSource)
@@ -86,12 +89,12 @@ func (s *Service) GenerateEntityApi(ctx *gin.Context) {
 
 				file, err := os.ReadFile(saveFilePath)
 				if err != nil {
-					log.Fatalf("Ошибка при чтении файла: %v", err)
+					log.Error("Ошибка при чтении файла: %v", err)
 				}
 
 				byteSource, err := format.Source(file)
 				if err != nil {
-					fmt.Println("Error formatting code:", err)
+					log.Error("Error formatting code:", err)
 				}
 
 				formattedCodeOldCode = string(byteSource)
