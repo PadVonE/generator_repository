@@ -66,13 +66,15 @@ func (s *Service) GenerateEntityApi(ctx *gin.Context) {
 				log.Error(err)
 				continue
 			}
-
+			formattedCodeNewCode := ""
 			byteSource, err := format.Source([]byte(code))
+			formattedCodeNewCode = string(byteSource)
+
 			if err != nil {
-				log.Error("Error formatting code:", err)
+				log.Error("Error formatting new code:", err)
+				formattedCodeNewCode = code
 				//return
 			}
-			formattedCodeNewCode := string(byteSource)
 
 			saveFilePath := servicePath + "/entity/" + strcase.ToSnake(l.Name) + ".go"
 			//if replaceFile {

@@ -56,14 +56,18 @@ func handler(s *service.Service) http.Handler {
 	api.GET("/generate-service", s.GenerateServiceFileApi)
 	// Генератор файлов gateway
 	api.GET("/generate-gateway", s.GenerateGatewayFileApi)
-
+	// Генератор тестовых файлов
 	api.GET("/generate-test", s.GenerateServiceTestFileApi)
-
+	// Генератор  основных файлов
 	api.GET("/generate-general", s.GenerateGeneralFileApi)
 
+	//
 	api.POST("/save-file", s.SaveFileApi)
 
-	api.GET("/update-go", s.UpdateGoPackagesInDir)
+	ssh := handler.Group("/ssh")
+
+	ssh.GET("/update-and-tidy-modules", s.SshUpdateAndTidyModules)
+	ssh.GET("/generate-swagger-server", s.GenerateSwaggerServer)
 
 	return handler
 
@@ -74,10 +78,10 @@ func StartWebServer(s *service.Service) error {
 	srv := http.Server{
 		//Addr:              ":" + os.Getenv("HTTP_PORT"),
 		Addr:              ":8090",
-		IdleTimeout:       3 * time.Second,
-		WriteTimeout:      5 * time.Second,
-		ReadHeaderTimeout: 10 * time.Second,
-		ReadTimeout:       3 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		WriteTimeout:      60 * time.Second,
+		ReadHeaderTimeout: 60 * time.Second,
+		ReadTimeout:       60 * time.Second,
 		MaxHeaderBytes:    8192,
 		Handler:           handler(s),
 	}

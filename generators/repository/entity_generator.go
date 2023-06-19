@@ -88,7 +88,7 @@ func generateRow(row entity.Struct) (code string, imports string) {
 		case "*timestamppb.Timestamp":
 			if field.Name == "DeletedAt" {
 				if countImports["gorm"] == 0 {
-					imports += "\t\"gorm.io/gorm\""
+					imports += "\t\"gorm.io/gorm\"\n"
 				}
 				countImports["gorm"]++
 				fType = "gorm.DeletedAt"
@@ -98,7 +98,7 @@ func generateRow(row entity.Struct) (code string, imports string) {
 			fType = "time.Time"
 		case "[]string":
 			if countImports["[]string"] == 0 {
-				imports += "\t\"github.com/lib/pq\""
+				imports += "\t\"github.com/lib/pq\"\n"
 			}
 			countImports["[]string"]++
 

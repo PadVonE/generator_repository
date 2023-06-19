@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
+	"net/http"
 )
 
 func (s *Service) WsHandleConnections(ctx *gin.Context) {
@@ -12,6 +13,9 @@ func (s *Service) WsHandleConnections(ctx *gin.Context) {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
 	}
 
 	ws, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)

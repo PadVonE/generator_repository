@@ -8,6 +8,7 @@ import (
 	"github.com/google/go-github/v39/github"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 func (s *Service) Organization(ctx *gin.Context) {
@@ -39,31 +40,44 @@ func (s *Service) Organization(ctx *gin.Context) {
 		return
 	}
 
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
+
 	for _, repo := range repos {
-
 		hasDb := false
-		for i, project := range projects {
-			if project.Name == *repo.Name {
-				hasDb = true
-				if project.Type == entity.PROJECT_TYPE_REPOSITORY && project.PushedAt != repo.GetPushedAt().UTC() {
+		for i, _ := range projects {
+			wg.Add(1)
 
-					release, _ := s.getLastRelease(organization.Name, *repo.Name)
-					commit, _ := s.getLastCommit(organization.Name, *repo.Name)
+			go func(i int, repo *github.Repository, hasDb *bool) {
+				defer wg.Done()
 
-					if release.GetTagName() != project.GithubReleaseTag {
-						projects[i].NewTag = release.GetTagName()
+				project := projects[i]
+				if project.Name == *repo.Name {
+					mutex.Lock()
+					*hasDb = true
+					mutex.Unlock()
+					if project.Type == entity.PROJECT_TYPE_REPOSITORY && project.PushedAt != repo.GetPushedAt().UTC() {
+
+						release, _ := s.getLastRelease(organization.Name, *repo.Name)
+						commit, _ := s.getLastCommit(organization.Name, *repo.Name)
+
+						if release.GetTagName() != project.GithubReleaseTag {
+							projects[i].NewTag = release.GetTagName()
+						}
+
+						projects[i].NewCommitName = commit.GetCommit().GetMessage()
+						projects[i].NewCommitDate = commit.Commit.GetAuthor().GetDate()
 					}
-
-					projects[i].NewCommitName = commit.GetCommit().GetMessage()
-					projects[i].NewCommitDate = commit.Commit.GetAuthor().GetDate()
 				}
-			}
 
-			path := filepath.FromSlash("./tmp/" + project.Name)
-			if _, err := os.Stat(path); err == nil {
-				projects[i].HasClone = true
-			}
+				path := filepath.FromSlash("./tmp/" + project.Name)
+				if _, err := os.Stat(path); err == nil {
+					projects[i].HasClone = true
+				}
+			}(i, repo, &hasDb)
 		}
+
+		wg.Wait()
 
 		if !hasDb {
 			project := entity.Project{
@@ -75,7 +89,6 @@ func (s *Service) Organization(ctx *gin.Context) {
 			}
 			projects = append([]entity.Project{project}, projects...)
 		}
-
 	}
 
 	ctx.HTML(200, "organization_list", gin.H{

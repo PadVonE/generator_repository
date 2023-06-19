@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v39/github"
 	log "github.com/sirupsen/logrus"
+	"github.com/xanzy/go-gitlab"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"os"
 	"sync"
@@ -193,7 +194,16 @@ func (s *Service) cloneProtoAndRealisation(project entity.Project, organization 
 	}
 
 	if len(repositoryRealisation) > 0 {
-		exist, err := helpers.RepoExists(envopt.GetEnv("GITLAB_TOKEN"), organization.GitlabOrganizationName()+"/"+repositoryRealisation)
+		exist := true
+
+		_, _, err := s.GitLabClient.Projects.GetProject(organization.GitlabOrganizationName()+"/"+repositoryRealisation, nil)
+		if err != nil {
+			if errResponse, ok := err.(*gitlab.ErrorResponse); ok && errResponse.Response.StatusCode == 404 {
+				exist = false
+			}
+			exist = false
+		}
+
 		if exist {
 			fmt.Printf("Есть \n", organization.GitlabUrl+repositoryRealisation)
 
