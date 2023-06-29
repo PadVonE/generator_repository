@@ -47,16 +47,16 @@ func (s *Service) Organization(ctx *gin.Context) {
 		hasDb := false
 		for i, _ := range projects {
 			wg.Add(1)
-
 			go func(i int, repo *github.Repository, hasDb *bool) {
 				defer wg.Done()
 
 				project := projects[i]
 				if project.Name == *repo.Name {
+
 					mutex.Lock()
 					*hasDb = true
 					mutex.Unlock()
-					if project.Type == entity.PROJECT_TYPE_REPOSITORY && project.PushedAt != repo.GetPushedAt().UTC() {
+					if project.PushedAt != repo.GetPushedAt().UTC() {
 
 						release, _ := s.getLastRelease(organization.Name, *repo.Name)
 						commit, _ := s.getLastCommit(organization.Name, *repo.Name)

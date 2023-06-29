@@ -115,41 +115,56 @@
 
 
                                                 {{ if eq .Type 1 }}
+                                                    <div class="btn btn-success cloneRep" title="Clone repository"
+                                                         data-project-id="{{ .Id }}"><i class="fa fa-download"></i>
+                                                    </div>
+
+                                                    <button class="btn btn-primary loadData" data-type="entity"
+                                                            data-project-id="{{ .Id }}" title="entity" {{ if not
+                                                            .HasClone
+                                                            }}disabled{{ end }}>E
+                                                    </button>
+                                                    <button class="btn btn-primary loadData" data-type="migration"
+                                                            data-project-id="{{ .Id }}" title="Migration" {{ if not
+                                                            .HasClone
+                                                            }}disabled{{ end }}>M
+                                                    </button>
+                                                    <button class="btn btn-primary loadData" data-type="service"
+                                                            data-project-id="{{ .Id }}" title="Service" {{ if not
+                                                            .HasClone
+                                                            }}disabled{{ end }}>S
+                                                    </button>
+                                                    <button class="btn btn-primary loadData" data-type="test"
+                                                            data-project-id="{{ .Id }}" title="Test File" {{ if not
+                                                            .HasClone
+                                                            }}disabled{{ end }}>T
+                                                    </button>
+                                                    <button class="btn btn-primary loadData" data-type="general"
+                                                            data-project-id="{{ .Id }}" title="General File" {{ if not
+                                                            .HasClone
+                                                            }}disabled{{ end }}>G
+                                                    </button>
+                                                    <button class="btn btn-warning loadData" data-type="all"
+                                                            data-project-id="{{ .Id }}" title="General File" {{ if not
+                                                            .HasClone
+                                                            }}disabled{{ end }}>All
+                                                    </button>
+
+                                                    <button class="btn btn-primary btn-sm sshCommand"
+                                                            data-type="generate-protobuf"
+                                                            data-project-id="{{ .Id }}" title="Generate Protobuff">protoc
+                                                    </button>
+                                                {{ end }}
+
+                                                {{ if eq .Type 2 }}
                                                 <div class="btn btn-success cloneRep" title="Clone repository"
                                                      data-project-id="{{ .Id }}"><i class="fa fa-download"></i>
                                                 </div>
 
-                                                <button class="btn btn-primary loadData" data-type="entity"
-                                                        data-project-id="{{ .Id }}" title="entity" {{ if not
-                                                        .HasClone
-                                                        }}disabled{{ end }}>E
+                                                <button class="btn btn-primary btn-sm sshCommand"
+                                                        data-type="generate-protobuf"
+                                                        data-project-id="{{ .Id }}" title="Generate Protobuff">protoc
                                                 </button>
-                                                <button class="btn btn-primary loadData" data-type="migration"
-                                                        data-project-id="{{ .Id }}" title="Migration" {{ if not
-                                                        .HasClone
-                                                        }}disabled{{ end }}>M
-                                                </button>
-                                                <button class="btn btn-primary loadData" data-type="service"
-                                                        data-project-id="{{ .Id }}" title="Service" {{ if not
-                                                        .HasClone
-                                                        }}disabled{{ end }}>S
-                                                </button>
-                                                <button class="btn btn-primary loadData" data-type="test"
-                                                        data-project-id="{{ .Id }}" title="Test File" {{ if not
-                                                        .HasClone
-                                                        }}disabled{{ end }}>T
-                                                </button>
-                                                <button class="btn btn-primary loadData" data-type="general"
-                                                        data-project-id="{{ .Id }}" title="General File" {{ if not
-                                                        .HasClone
-                                                        }}disabled{{ end }}>G
-                                                </button>
-                                                <button class="btn btn-warning loadData" data-type="all"
-                                                        data-project-id="{{ .Id }}" title="General File" {{ if not
-                                                        .HasClone
-                                                        }}disabled{{ end }}>All
-                                                </button>
-
                                                 {{ end }}
 
                                                 {{ if eq .Type 3 }}
@@ -420,13 +435,12 @@
 
 
     document.addEventListener('DOMContentLoaded', function () {
-
-
         let compareEditor;
         let codeLeft;
         let codeRight;
+        let currentClassBlock;
 
-        const initCompareEditor = (leftCode, rightCode) => {
+        const initCompareEditor = (leftCode, rightCode, classBlock) => {
             if (compareEditor) {
                 compareEditor.dispose();
                 compareEditor = null;
@@ -440,29 +454,34 @@
                     language: 'go',
                 });
 
+                let originalModel = monaco.editor.createModel(leftCode, 'go');
+                let modifiedModel = monaco.editor.createModel(rightCode, 'go');
+
                 compareEditor.setModel({
-                    original: monaco.editor.createModel(leftCode, 'go'),
-                    modified: monaco.editor.createModel(rightCode, 'go'),
+                    original: originalModel,
+                    modified: modifiedModel,
+                });
+
+                modifiedModel.onDidChangeContent(function (e) {
+                    $("." + classBlock + "-right", document).html(modifiedModel.getValue());
                 });
             });
         };
 
-
         // Открытие модального окна
         $(document).on('click', '.compare-btn', function () {
-            var classblock = $(this).data("code");
-            console.log(classblock)
-            codeLeft = $("." + classblock + "-left", document).html()
-            codeRight = $("." + classblock + "-right", document).html()
+            currentClassBlock = $(this).data("code");
+            console.log(currentClassBlock)
+            codeLeft = $("." + currentClassBlock + "-left", document).html()
+            codeRight = $("." + currentClassBlock + "-right", document).html()
             $(".file-preview", document).removeClass("active")
             $(this).closest(".file-preview").addClass("active")
         });
 
         // Открытие модального окна
         $('#compareModal').on('shown.bs.modal', function () {
-            initCompareEditor(codeLeft, codeRight);
+            initCompareEditor(codeLeft, codeRight, currentClassBlock);
         });
-
 
         // Закрытие модального окна
         $('#compareModal').on('hidden.bs.modal', function () {

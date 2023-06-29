@@ -28,7 +28,9 @@ func DbConnection() *gorm.DB {
 			envopt.GetEnv("TZ"),
 		)
 
-		config := &gorm.Config{}
+		config := &gorm.Config{
+			//Logger: logger.Default.LogMode(logger.Info),
+		}
 
 		db, err = gorm.Open(gp.Open(dsn), config)
 		if err != nil {

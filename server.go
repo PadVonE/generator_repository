@@ -68,6 +68,7 @@ func handler(s *service.Service) http.Handler {
 
 	ssh.GET("/update-and-tidy-modules", s.SshUpdateAndTidyModules)
 	ssh.GET("/generate-swagger-server", s.GenerateSwaggerServer)
+	ssh.GET("/generate-protobuf", s.GenerateProtobuf)
 
 	return handler
 

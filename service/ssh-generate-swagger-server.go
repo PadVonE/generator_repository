@@ -51,7 +51,15 @@ func (s *Service) GenerateSwaggerServer(ctx *gin.Context) {
 	}
 
 	// Выполнение команды swagger через docker
-	cmd := exec.Command("docker", "run", "--rm", "--user", fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid()), "-e", fmt.Sprintf("GOPATH=%s:/go", os.Getenv("GOPATH")), "-v", fmt.Sprintf("%s:%s", os.Getenv("HOME"), os.Getenv("HOME")), "-w", outputPathAbs, "quay.io/goswagger/swagger", "generate", "server", "--with-flatten=full", "-f", specificationPathAbs)
+	cmd := exec.Command("docker", "run",
+		"--rm",
+		"--user", fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid()),
+		"-e", fmt.Sprintf("GOPATH=%s:/go", os.Getenv("GOPATH")),
+		"-v", fmt.Sprintf("%s:%s", os.Getenv("HOME"), os.Getenv("HOME")),
+		"-w", outputPathAbs,
+		"quay.io/goswagger/swagger",
+		"generate", "server", "--with-flatten=full", "-f", specificationPathAbs)
+
 	realTimeOutput(cmd)
 
 	log.Infof("Successfully generated swagger server in %s", outputPath)

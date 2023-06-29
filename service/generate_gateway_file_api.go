@@ -53,7 +53,9 @@ func (s *Service) GenerateGatewayFileApi(ctx *gin.Context) {
 	err = s.DB.Find(&allRepository, "type IN ? AND last_structure != ?", []int{
 		entity.PROJECT_TYPE_REPOSITORY,
 		entity.PROJECT_TYPE_USECASE,
-	}, "{}").Error
+	}, "{}").
+		Order("type DESC"). // сортировкак для того чтобы гетвей подсасывал первыми юзкейсы а после уже репозитории
+		Error
 
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
@@ -77,7 +79,8 @@ func (s *Service) GenerateGatewayFileApi(ctx *gin.Context) {
 			relatedProject, err := FindProjectsByOperations(allRepository, operation.NameMethod)
 			if relatedProject.Id == 0 {
 				log.Errorf("Failed to find project for operation %s: %v", operation.NameMethod, err)
-				continue
+				//continue
+				relatedProject = entity.Project{}
 			}
 
 			log.Infof("Found project %s for operation %s\n", relatedProject.Name, operation.NameMethod)
@@ -103,11 +106,14 @@ func (s *Service) GenerateGatewayFileApi(ctx *gin.Context) {
 			}
 
 			byteSource, err := format.Source([]byte(code))
+			formattedCodeNewCode := string(byteSource)
+
 			if err != nil {
 				log.Error("Error formatting code:", err)
-				return
+				formattedCodeNewCode = code
+				//return
 			}
-			formattedCodeNewCode := string(byteSource)
+			//formattedCodeNewCode := string(byteSource)
 
 			formattedCodeOldCode := ""
 			hasFile := false

@@ -194,8 +194,11 @@ func gatewayListResponse(oi *entity.OperationInfo, nameInSnake string) (code str
 			default:
 				if strings.Contains(row.Name, "date") {
 					code += nameWithBigID + ": strfmt.DateTime(item." + strcase.ToCamel(row.Name) + ".AsTime()),\n"
-
 					break
+				}
+
+				if strings.Contains(row.Name, "Uuid") {
+					code += nameWithBigID + ": strfmt.UUID(item." + strcase.ToCamel(row.Name) + "),\n"
 				}
 				code += nameWithBigID + ": item." + strcase.ToCamel(row.Name) + ",\n"
 			}

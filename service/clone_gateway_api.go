@@ -120,11 +120,12 @@ func (s *Service) CloneGateway(projectID string) (specificationProjectComponents
 	commit, _ := s.getLastCommit(org.Name, *repo.Name)
 
 	if release.GetTagName() != project.GithubReleaseTag {
-		project.NewTag = release.GetTagName()
+		project.GithubReleaseTag = release.GetTagName()
 	}
 
-	project.NewCommitName = commit.GetCommit().GetMessage()
-	project.NewCommitDate = commit.Commit.GetAuthor().GetDate()
+	project.GithubLastCommitAuthor = commit.GetCommit().GetAuthor().GetName()
+	project.GithubLastCommitName = commit.GetCommit().GetMessage()
+	project.GithubLastCommitTime = commit.Commit.GetAuthor().GetDate()
 
 	project.LastStructure = string(jsonStruct)
 	err = s.DB.Save(&project).Error

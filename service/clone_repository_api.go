@@ -32,8 +32,8 @@ func (s *Service) CloneRepositoryApi(ctx *gin.Context) {
 		fmt.Printf("project.Id: %v\n", project.Id)
 		return
 	}
-	if project.Type != entity.PROJECT_TYPE_REPOSITORY {
-		fmt.Printf("Not Repository project.Id: %v\n", project.Id)
+	if project.Type != entity.PROJECT_TYPE_REPOSITORY && project.Type != entity.PROJECT_TYPE_USECASE {
+		fmt.Printf("Not Repository or Usecase project.Id: %v\n", project.Id)
 		return
 	}
 
@@ -96,13 +96,15 @@ func (s *Service) CloneRepositoryApi(ctx *gin.Context) {
 	commit, _ := s.getLastCommit(org.Name, *repo.Name)
 
 	if release.GetTagName() != project.GithubReleaseTag {
-		project.NewTag = release.GetTagName()
+		project.GithubReleaseTag = release.GetTagName()
 	}
 
-	project.NewCommitName = commit.GetCommit().GetMessage()
-	project.NewCommitDate = commit.Commit.GetAuthor().GetDate()
+	project.GithubLastCommitAuthor = commit.GetCommit().GetAuthor().GetName()
+	project.GithubLastCommitName = commit.GetCommit().GetMessage()
+	project.GithubLastCommitTime = commit.Commit.GetAuthor().GetDate()
 
 	project.LastStructure = string(structure)
+
 	err = s.DB.Save(&project).Error
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
@@ -123,7 +125,10 @@ func ParseInfoFromProto(clonePath string) (projectComponents entity.ProjectCompo
 	for _, file := range files {
 
 		fileAddress := clonePath + "/" + file.Name()
-		if strings.HasSuffix(file.Name(), "repository.pb.go") || strings.HasSuffix(file.Name(), "repository_grpc.pb.go") {
+		if strings.HasSuffix(file.Name(), "repository.pb.go") ||
+			strings.HasSuffix(file.Name(), "repository_grpc.pb.go") ||
+			strings.HasSuffix(file.Name(), "usecase.pb.go") ||
+			strings.HasSuffix(file.Name(), "usecase_grpc.pb.go") {
 			funcFile = fileAddress
 			continue
 		}
@@ -133,6 +138,7 @@ func ParseInfoFromProto(clonePath string) (projectComponents entity.ProjectCompo
 		}
 	}
 
+	log.Println(funcFile)
 	projectComponents.PackageStruct = usecase.GetRepositoryInfo(funcFile)
 
 	projectComponents.ListOfStruct = []entity.Struct{}

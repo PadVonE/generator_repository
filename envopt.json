@@ -5,6 +5,8 @@
   {"key": "GITHUB_TOKEN", "critical": true, "default": ""},
   {"key": "GITLAB_TOKEN", "critical": true, "default": ""},
 
+  {"key": "SWAGGER_VERSION", "critical": true, "default": "v0.30.0"},
+
   {"key": "POSTGRES_HOST", "critical": true, "default": "127.0.0.1"},
   {"key": "POSTGRES_PORT", "critical": true, "default": "5569"},
   {"key": "POSTGRES_DB_NAME", "critical": true, "default": "generator"},

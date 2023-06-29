@@ -47,3 +47,11 @@ func (s *Service) LogGlobal(text string) {
 		Name:  "[GLOB]",
 	})
 }
+
+func (s *Service) LogComplete(text string) {
+	s.sendMessageToClients(entity.Message{
+		Text:  text,
+		Color: "green",
+		Name:  "[GLOB]",
+	})
+}

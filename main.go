@@ -38,7 +38,7 @@ func main() {
 	//var err error
 	envopt.Validate("envopt.json")
 
-	//openbrowser("http://localhost:8090/")
+	openbrowser("http://localhost:8090/")
 
 	s := &service.Service{}
 

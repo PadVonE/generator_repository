@@ -8,6 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"sync"
 )
 
@@ -28,11 +29,29 @@ func (s *Service) SshUpdateAndTidyModules(ctx *gin.Context) {
 
 	servicePath := project.LocalPath
 
+	if project.Type == entity.PROJECT_TYPE_SPECIFICATION {
+		newPath := filepath.Join(servicePath, "cmd")
+
+		files, err := os.ReadDir(newPath)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		for _, file := range files {
+			if file.IsDir() {
+				servicePath = filepath.Join(newPath, file.Name())
+				break
+			}
+		}
+	}
+
 	// Проверка, существует ли путь
 	if _, err := os.Stat(servicePath); os.IsNotExist(err) {
 		log.Errorf("Service path does not exist: %s", servicePath)
 		return
 	}
+
 	// Выполнение команды go get -u
 	cmd := exec.Command("go", "get", "-u")
 	cmd.Dir = servicePath
