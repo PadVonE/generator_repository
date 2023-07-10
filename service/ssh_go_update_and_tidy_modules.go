@@ -83,7 +83,7 @@ func realTimeOutput(cmd *exec.Cmd) {
 	go func() {
 		scanner := bufio.NewScanner(stderr)
 		for scanner.Scan() {
-			log.Warn(scanner.Text())
+			log.Info(scanner.Text())
 		}
 		wg.Done()
 	}()

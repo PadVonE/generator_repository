@@ -6,8 +6,11 @@ import (
 	"generator/entity"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v39/github"
+	log "github.com/sirupsen/logrus"
+	gitlab "github.com/xanzy/go-gitlab"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 )
 
@@ -26,7 +29,7 @@ func (s *Service) Organization(ctx *gin.Context) {
 
 	query := s.DB.Model(&entity.Project{})
 
-	err = query.Where("organization_id = ?", organization.Id).Order("github_last_commit_time DESC").Limit(100).Find(&projects).Error
+	err = query.Where("organization_id = ?", organization.Id).Order("specification_last_commit_time DESC").Limit(100).Find(&projects).Error
 
 	if err != nil {
 
@@ -61,12 +64,13 @@ func (s *Service) Organization(ctx *gin.Context) {
 						release, _ := s.getLastRelease(organization.Name, *repo.Name)
 						commit, _ := s.getLastCommit(organization.Name, *repo.Name)
 
-						if release.GetTagName() != project.GithubReleaseTag {
-							projects[i].NewTag = release.GetTagName()
+						if release.GetTagName() != project.SpecificationReleaseTag {
+							projects[i].NewSpecificationTag = release.GetTagName()
 						}
 
-						projects[i].NewCommitName = commit.GetCommit().GetMessage()
-						projects[i].NewCommitDate = commit.Commit.GetAuthor().GetDate()
+						projects[i].NewSpecificationCommitName = commit.GetCommit().GetMessage()
+						projects[i].NewSpecificationCommitAuthor = commit.GetCommit().GetMessage()
+						projects[i].NewSpecificationCommitDate = commit.Commit.GetAuthor().GetDate()
 					}
 				}
 
@@ -85,6 +89,73 @@ func (s *Service) Organization(ctx *gin.Context) {
 				Name:           *repo.Name,
 				LocalPath:      *repo.FullName,
 				Type:           entity.GetTypeProjectByName(*repo.Name),
+				IsNewProject:   true,
+			}
+			projects = append([]entity.Project{project}, projects...)
+		}
+	}
+
+	// Теперь проделаем всё тоже но с репозиторием реализаций
+
+	projectURL := strings.ReplaceAll(organization.GitlabUrl, "https://gitlab.com/", "")
+	projectURL = strings.TrimSuffix(projectURL, "/")
+
+	gitlabRepos, _, err := s.GitLabClient.Groups.ListGroupProjects(projectURL, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	var wg2 sync.WaitGroup
+	for _, repo := range gitlabRepos {
+
+		hasDb := false
+		for i, _ := range projects {
+			wg2.Add(1)
+
+			go func(i int, repo *gitlab.Project, hasDb *bool) {
+				defer wg2.Done()
+				project := projects[i]
+
+				projectName := strings.ReplaceAll(project.Name, "proto-", "")
+				projectName = strings.ReplaceAll(projectName, "specification-", "gateway-")
+
+				if projectName == repo.Name {
+
+					mutex.Lock()
+					*hasDb = true
+					mutex.Unlock()
+					if project.RealisationLastCommitTime != *repo.LastActivityAt {
+
+						release, _ := s.getLastReleaseGitlab(repo)
+
+						if release != nil && release.Name !=
+							project.RealisationReleaseTag {
+							projects[i].NewRealisationTag = release.Name
+						}
+
+						commit, _ := s.getLastCommitGitlab(repo, "dev")
+
+						projects[i].NewRealisationCommitName = commit.Title
+						projects[i].NewRealisationCommitAuthor = commit.AuthorName
+						projects[i].NewRealisationCommitDate = *repo.LastActivityAt
+
+					}
+				}
+
+				path := filepath.FromSlash("./tmp/" + project.Name)
+				if _, err := os.Stat(path); err == nil {
+					projects[i].HasClone = true
+				}
+
+			}(i, repo, &hasDb)
+		}
+		wg2.Wait()
+		if !hasDb {
+			project := entity.Project{
+				OrganizationId: organization.Id,
+				Name:           repo.Name,
+				LocalPath:      repo.Namespace.Path,
+				Type:           entity.GetTypeProjectByName(repo.Name),
 				IsNewProject:   true,
 			}
 			projects = append([]entity.Project{project}, projects...)
@@ -169,4 +240,30 @@ func (s *Service) getLastRelease(owner, repoName string) (*github.RepositoryRele
 	}
 
 	return releases[0], nil
+}
+
+func (s *Service) getLastCommitGitlab(project *gitlab.Project, branch string) (commit *gitlab.Commit, err error) {
+
+	commits, _, err := s.GitLabClient.Commits.ListCommits(project.ID, &gitlab.ListCommitsOptions{RefName: &branch, ListOptions: gitlab.ListOptions{PerPage: 1, Page: 1}})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if len(commits) == 0 {
+		return
+	}
+	return commits[0], nil
+}
+
+func (s *Service) getLastReleaseGitlab(project *gitlab.Project) (tag *gitlab.Tag, err error) {
+	tags, _, err := s.GitLabClient.Tags.ListTags(project.ID, &gitlab.ListTagsOptions{ListOptions: gitlab.ListOptions{PerPage: 1, Page: 1}})
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	if len(tags) == 0 {
+		return
+	}
+
+	return tags[0], nil
 }

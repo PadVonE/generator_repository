@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"generator/entity"
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"os"
@@ -22,9 +21,9 @@ func CloningRepository(gitRepository string, clonePath string, basicAuth *http.B
 		return err
 	}
 
-	log.WithFields(log.Fields{
-		"Status": "Complete",
-	}).Info("Cloning  repository")
+	//log.WithFields(log.Fields{
+	//	"Status": "Complete",
+	//}).Info("Cloning  repository")
 
 	return nil
 }

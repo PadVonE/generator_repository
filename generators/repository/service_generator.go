@@ -13,7 +13,20 @@ import (
 
 func GenerateServiceCode(strc entity.ProtoInterfaceMethod, packageStruct entity.PackageStruct, nameInterface entity.NameInterface) (code string, err error) {
 
-	path := filepath.FromSlash("./generators/repository/template/service/_" + strings.ToLower(nameInterface.Action) + ".txt")
+	suffix := ""
+	for _, request := range strc.RequestStruct.Rows {
+		if request.Name == "Uuid" {
+			suffix = "_by_uuid"
+		}
+	}
+
+	templateName := strings.ToLower(nameInterface.Action)
+
+	if templateName == "update" || templateName == "delete" {
+		templateName = templateName + suffix
+	}
+
+	path := filepath.FromSlash("./generators/repository/template/service/_" + templateName + ".txt")
 	if len(path) > 0 && !os.IsPathSeparator(path[0]) {
 		wd, err := os.Getwd()
 		if err != nil {
@@ -75,7 +88,7 @@ func ListFilter(request entity.Struct, nameInSnake string) (code string, imports
 			}
 			countImports["string"]++
 
-			if row.Name == "Uuid" {
+			if row.Name == "Uuid" || strings.Contains(row.Name, "Uuid") {
 				code += "\tif len(request." + row.Name + ") > 0 {\n" +
 					"\t\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " = ?\", request." + row.Name + ")\n" +
 					"\t}\n\n"
@@ -96,12 +109,14 @@ func ListFilter(request entity.Struct, nameInSnake string) (code string, imports
 				"\t\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " = ?\", request." + row.Name + ")\n" +
 				"\t}\n\n"
 		case "[]int32":
+			trimmed := strings.TrimSuffix(strcase.ToSnake(row.Name), "s")
 			code += "\tif len(request." + row.Name + ") > 0 {\n" +
-				"\t\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " IN ?\", request." + row.Name + ")\n" +
+				"\t\tquery = query.Where(\"" + usePrefixTable + "" + trimmed + " IN ?\", request." + row.Name + ")\n" +
 				"\t}\n\n"
 		case "[]string":
+			trimmed := strings.TrimSuffix(strcase.ToSnake(row.Name), "s")
 			code += "\tif len(request." + row.Name + ") > 0 {\n" +
-				"\t\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " IN ?\", request." + row.Name + ")\n" +
+				"\t\tquery = query.Where(\"" + usePrefixTable + "" + trimmed + " IN ?\", request." + row.Name + ")\n" +
 				"\t}\n\n"
 		case "bool":
 			code += "\tquery = query.Where(\"" + usePrefixTable + "" + strcase.ToSnake(row.Name) + " = ?\", request." + row.Name + ")\n" +

@@ -6,11 +6,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"log"
 	"strings"
+	"sync"
 )
 
 type WsHook struct {
 	Service *service.Service
 	levels  []logrus.Level
+	Mutex   sync.Mutex
 }
 
 func (hook *WsHook) Fire(entry *logrus.Entry) (err error) {
@@ -22,13 +24,21 @@ func (hook *WsHook) Fire(entry *logrus.Entry) (err error) {
 		Text:  message,
 	}
 
-	for client := range hook.Service.WsClients {
-		err := client.WriteJSON(msg)
+	erroredClients := make([]*service.WsClient, 0)
+
+	for wsClient := range hook.Service.WsClients {
+		wsClient.Mutex.Lock()
+		err := wsClient.Conn.WriteJSON(msg)
+		wsClient.Mutex.Unlock()
 		if err != nil {
 			log.Printf("error: %v", err)
-			client.Close()
-			delete(hook.Service.WsClients, client)
+			wsClient.Conn.Close()
+			erroredClients = append(erroredClients, wsClient)
 		}
+	}
+
+	for _, wsClient := range erroredClients {
+		delete(hook.Service.WsClients, wsClient)
 	}
 
 	return err

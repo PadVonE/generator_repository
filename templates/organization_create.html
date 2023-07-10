@@ -41,7 +41,7 @@
 
 
 
-                            <button type="submit" class="btn btn-primary">Submit</button>
+                            <button type="submit" class="btn btn-primary">Добавить </button>
                         </form>
 
 
@@ -72,6 +72,24 @@
             jsonData[key] = value;
         }
 
+        const button = event.target.querySelector('button[type="submit"]');
+        button.disabled = true; // Отключить кнопку
+        button.innerHTML = '<i class="fa fa-spinner fa-spin"></i>'; // Заменить текст кнопки на иконку загрузки
+
+        let start = Date.now(); // Время начала запроса
+
+        // Вставить таймер рядом с кнопкой
+        let timerDiv = document.createElement('div');
+        timerDiv.id = 'timer';
+        button.parentNode.insertBefore(timerDiv, button.nextSibling);
+
+        let timer = setInterval(() => {
+            let delta = Date.now() - start; // Как много времени прошло с начала
+            let seconds = Math.floor(delta / 1000); // Преобразовать в секунды
+            let milliseconds = delta % 1000; // Оставшиеся миллисекунды
+            timerDiv.innerHTML = seconds + '.' + milliseconds + 's'; // Отобразить на таймере
+        }, 10);
+
         // Отправить JSON данные на сервер
         fetch('/api/generate-organization-struct', {
             method: 'POST',
@@ -83,9 +101,26 @@
             .then(response => response.json())
             .then(data => {
                 console.log('Success:', data);
+
+                // Заменить иконку загрузки на зелёную галочку
+                button.innerHTML = '<i class="fa fa-check"></i>';
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-success');
+
+                clearInterval(timer); // Остановить таймер
+
+                // Перенаправить пользователя после 2 секунд
+                setTimeout(() => {
+                    window.location.href = '/organization/' + data.Name;
+                }, 2000);
             })
             .catch((error) => {
                 console.error('Error:', error);
+
+                button.disabled = false; // Включить кнопку
+                button.innerHTML = 'Добавить'; // Восстановить текст кнопки
+                clearInterval(timer); // Остановить таймер
+                timerDiv.remove(); // Удалить таймер
             });
     });
 </script>

@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/xanzy/go-gitlab"
 	"gorm.io/gorm"
+	"sync"
 )
 
 type Service struct {
@@ -12,5 +13,10 @@ type Service struct {
 	GitHubClient *github.Client
 	GitLabClient *gitlab.Client
 
-	WsClients map[*websocket.Conn]bool
+	WsClients map[*WsClient]bool
+}
+
+type WsClient struct {
+	Conn  *websocket.Conn
+	Mutex sync.Mutex
 }

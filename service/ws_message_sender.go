@@ -6,13 +6,21 @@ import (
 )
 
 func (s *Service) sendMessageToClients(msg entity.Message) {
-	for client := range s.WsClients {
-		err := client.WriteJSON(msg)
+	erroredClients := make([]*WsClient, 0)
+
+	for wsClient := range s.WsClients {
+		wsClient.Mutex.Lock()
+		err := wsClient.Conn.WriteJSON(msg)
+		wsClient.Mutex.Unlock()
 		if err != nil {
 			log.Printf("error: %v", err)
-			client.Close()
-			delete(s.WsClients, client)
+			wsClient.Conn.Close()
+			erroredClients = append(erroredClients, wsClient)
 		}
+	}
+
+	for _, wsClient := range erroredClients {
+		delete(s.WsClients, wsClient)
 	}
 }
 

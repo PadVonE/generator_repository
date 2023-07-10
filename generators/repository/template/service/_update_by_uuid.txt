@@ -1,0 +1,32 @@
+package service
+
+import (
+	"context"
+	"github.com/{{ .PackageStruct.GitCompanyName}}/{{ .PackageStruct.GitRepositoryName}}"
+	"github.com/getsentry/sentry-go"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"gorm.io/gorm"
+	"{{ .PackageStruct.PackageNameForImport}}/entity"
+)
+
+func (s *Service) Update{{ .Name}}(_ context.Context, request *{{ .PackageStruct.PackageName}}.Update{{ .Name}}Request) (*{{ .PackageStruct.PackageName}}.{{ .Name}}, error) {
+	item := entity.UpdateProtoTo{{ .Name}}(request)
+
+    if item.Uuid == "" {
+		sentry.CaptureException(gorm.ErrMissingWhereClause)
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
+    if err := s.DB.Model(&entity.{{ .Name}}{}).Where("uuid = ?", item.Uuid).Updates(&item).Error; err != nil {
+        sentry.CaptureException(err)
+        return nil, status.Error(codes.Internal, "internal error")
+    }
+
+	if err := s.DB.Where("uuid = ?", item.Uuid).First(&item).Error; err != nil {
+        sentry.CaptureException(err)
+        return nil, status.Error(codes.Internal, "internal error")
+    }
+
+	return entity.{{ .Name}}ToProto(&item), nil
+}

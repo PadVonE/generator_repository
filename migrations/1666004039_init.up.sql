@@ -25,17 +25,17 @@ create table if not exists project
     name                      varchar   not null default '',
     local_path                varchar   not null default '',
 
-    github_url                varchar   not null default '',
-    github_last_commit_name   varchar   not null default '',
-    github_last_commit_time   timestamp not null default CURRENT_TIMESTAMP,
-    github_last_commit_author varchar   not null default '',
-    github_release_tag        varchar   not null default '',
+    specification_url                varchar   not null default '',
+    specification_last_commit_name   varchar   not null default '',
+    specification_last_commit_time   timestamp not null default CURRENT_TIMESTAMP,
+    specification_last_commit_author varchar   not null default '',
+    specification_release_tag        varchar   not null default '',
 
-    gitlab_url                varchar   not null default '',
-    gitlab_last_commit_name   varchar   not null default '',
-    gitlab_last_commit_time   timestamp not null default CURRENT_TIMESTAMP,
-    gitlab_last_commit_author varchar   not null default '',
-    gitlab_release_tag        varchar   not null default '',
+    realisation_url                varchar   not null default '',
+    realisation_last_commit_name   varchar   not null default '',
+    realisation_last_commit_time   timestamp not null default CURRENT_TIMESTAMP,
+    realisation_last_commit_author varchar   not null default '',
+    realisation_release_tag        varchar   not null default '',
 
     last_structure            jsonb     not null default '{}'
 );

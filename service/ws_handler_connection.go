@@ -6,10 +6,10 @@ import (
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"sync"
 )
 
 func (s *Service) WsHandleConnections(ctx *gin.Context) {
-
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -22,17 +22,21 @@ func (s *Service) WsHandleConnections(ctx *gin.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	defer ws.Close()
 
-	s.WsClients[ws] = true
+	wsClient := &WsClient{
+		Conn:  ws,
+		Mutex: sync.Mutex{},
+	}
+
+	s.WsClients[wsClient] = true
 
 	for {
 		var msg entity.Message
-		err := ws.ReadJSON(&msg)
+		err := wsClient.Conn.ReadJSON(&msg)
 		if err != nil {
 			log.Printf("error: %v", err)
-			delete(s.WsClients, ws)
+			delete(s.WsClients, wsClient)
 			break
 		}
 		// Здесь вы можете обрабатывать сообщения от клиента.

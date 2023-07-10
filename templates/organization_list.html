@@ -36,9 +36,8 @@
                                             </th>
                                             <th class="column-title">Id</th>
                                             <th class="column-title">Name</th>
-                                            <th class="column-title">Type</th>
-                                            <th class="column-title">Github Repository</th>
-                                            <th class="column-title">Gitlab Repository</th>
+                                            <th class="column-title">Specefication (Proto / Swagger)</th>
+                                            <th class="column-title">Realisation</th>
                                             <th class="column-title no-link last"><span class="nobr">Actions</span>
                                             </th>
 
@@ -55,37 +54,111 @@
                                             <td>{{ .Name }}
                                                 <div><span class="badge badge-primary">{{ .LocalPath}}</span></div>
                                             </td>
-                                            <td>{{ .Type }}</td>
-                                            <td><span class="badge badge-dark">{{ .GithubLastCommitAuthor }}</span>
+                                            <td><a href="{{ .SpecificationUrl }}" class="fa fa-link float-right" target="_blank"></a>
+                                                <span class="badge badge-warning"><i class="fa fa-code-fork"></i> main</span>
+                                                <span class="badge badge-dark"><i class="fa fa-user"></i> {{ .SpecificationLastCommitAuthor }}</span>
                                                 <span
-                                                        class="badge badge-primary">{{ .GithubLastCommitName }}</span>
-                                                {{ .GithubLastCommitTime | timeAgo }}
+                                                        class="badge badge-primary">{{ .SpecificationLastCommitName }}</span>
+                                                {{ .SpecificationLastCommitTime | timeAgo }}
 
-                                                {{ if .NewCommitName }}
-                                                <br><span class="badge badge-warning">{{ .NewCommitName}}</span> {{
-                                                .NewCommitDate | timeAgo }}
+                                                {{ if .NewSpecificationCommitName }}
+                                                <br>
+                                                <span class="badge badge-dark">{{ .NewSpecificationCommitAuthor }}</span>
+                                                <span class="badge badge-warning">{{ .NewSpecificationCommitName}}</span> {{
+                                                .NewSpecificationCommitDate | timeAgo }}
                                                 {{ end }}
                                                 <br>
-                                                <span class="badge badge-secondary">{{ .GithubReleaseTag }}</span>
-                                                {{ if .NewTag }}
+                                                <span class="badge badge-secondary">{{ .SpecificationReleaseTag }}</span>
+                                                {{ if .NewSpecificationTag }}
                                                 ->
-                                                <span class="badge badge-success">{{ .NewTag }}</span>
+                                                <span class="badge badge-success">{{ .NewSpecificationTag }}</span>
+                                                {{ end }}
+                                                <hr>
+                                                {{ if eq .Type 1 }}
+
+                                                <div class="btn btn-success btn-sm cloneRep"
+                                                     title="Synchronize repository"
+                                                     data-project-id="{{ .Id }}"><i class="fa fa-refresh"></i>
+                                                </div>
+
+                                                <button class="btn btn-primary btn-sm sshCommand"
+                                                        data-type="generate-protobuf"
+                                                        data-project-id="{{ .Id }}" title="Generate Protobuff">protoc
+                                                </button>
+
+                                                {{ end }}
+
+
+                                                {{ if eq .Type 2 }}
+
+                                                <div class="btn btn-success btn-sm cloneRep" title="Synchronize usecase"
+                                                     data-project-id="{{ .Id }}"><i class="fa fa-refresh"></i>
+                                                </div>
+
+                                                <button class="btn btn-primary btn-sm sshCommand"
+                                                        data-type="generate-protobuf"
+                                                        data-project-id="{{ .Id }}" title="Generate Protobuff">protoc
+                                                </button>
+                                                {{ end }}
+
+                                                {{ if eq .Type 3 }}
+                                                <div class="btn btn-success btn-sm cloneGateway"
+                                                     title="Synchronize gateway"
+                                                     data-project-id="{{ .Id }}"><i class="fa fa-refresh"></i>
+                                                </div>
+                                                <button class="btn btn-primary btn-sm sshCommand"
+                                                        data-type="generate-swagger-server"
+                                                        data-project-id="{{ .Id }}" title="go get -u && go mod tidy">
+                                                    swagger
+                                                </button>
                                                 {{ end }}
                                             </td>
-                                            <td><span class="badge badge-dark">{{ .GitlabLastCommitAuthor }}</span>
+                                            <td><a href="{{ .RealisationUrl }}" class="fa fa-link float-right" target="_blank"></a>
+                                                <span class="badge badge-dark">{{ .RealisationLastCommitAuthor }}</span>
                                                 <span
-                                                        class="badge badge-primary">{{ .GitlabLastCommitName }}</span>
-                                                {{ .GitlabLastCommitTime | timeAgo }}
+                                                        class="badge badge-primary">{{ .RealisationLastCommitName }}</span>
+                                                {{ .RealisationLastCommitTime | timeAgo }}
 
-                                                <!--                                        {{ if .NewCommitName }}-->
-                                                <!--                                        <br><span class="badge badge-warning">{{ .NewCommitName}}</span> {{ .NewCommitDate | timeAgo }}-->
-                                                <!--                                        {{ end }}-->
+                                                {{ if .NewRealisationCommitName }}
                                                 <br>
-                                                <span class="badge badge-secondary">{{ .GitlabReleaseTag }}</span>
-                                                <!--                                        {{ if .NewTag }}-->
-                                                <!--                                        ->-->
-                                                <!--                                        <span class="badge badge-success">{{ .NewTag }}</span>-->
-                                                <!--                                        {{ end }}-->
+                                                <span class="badge badge-dark">{{ .NewRealisationCommitAuthor }}</span>
+                                                <span class="badge badge-warning">{{ .NewRealisationCommitName}}</span> {{
+                                                .NewRealisationCommitDate | timeAgo }}
+                                                {{ end }}
+                                                <br>
+                                                <span class="badge badge-secondary">{{ .RealisationReleaseTag }}</span>
+                                                {{ if .NewRealisationTag }}
+                                                ->
+                                                <span class="badge badge-success">{{ .NewRealisationTag }}</span>
+                                                {{ end }}
+                                                <hr>
+                                                {{ if eq .Type 1 }}
+
+                                                <button class="btn btn-primary btn-sm sshCommand"
+                                                        data-type="update-and-tidy-modules"
+                                                        data-project-id="{{ .Id }}" title="go get -u && go mod tidy">go
+                                                    get
+                                                </button>
+
+                                                {{ end }}
+
+
+                                                {{ if eq .Type 2 }}
+
+                                                <button class="btn btn-primary btn-sm sshCommand"
+                                                        data-type="update-and-tidy-modules"
+                                                        data-project-id="{{ .Id }}" title="go get -u && go mod tidy">go
+                                                    get
+                                                </button>
+                                                {{ end }}
+
+                                                {{ if eq .Type 3 }}
+                                                <button class="btn btn-primary btn-sm sshCommand"
+                                                        data-type="update-and-tidy-modules"
+                                                        data-project-id="{{ .Id }}" title="go get -u && go mod tidy">go
+                                                    get
+                                                </button>
+                                                {{ end }}
                                             </td>
 
                                             <td class=" last">
@@ -115,52 +188,41 @@
 
 
                                                 {{ if eq .Type 1 }}
-                                                    <div class="btn btn-success cloneRep" title="Clone repository"
-                                                         data-project-id="{{ .Id }}"><i class="fa fa-download"></i>
-                                                    </div>
+                                                <button class="btn btn-primary btn-sm loadData" data-type="entity"
+                                                        data-project-id="{{ .Id }}" title="entity" {{ if not
+                                                        .HasClone
+                                                        }}disabled{{ end }}>E
+                                                </button>
+                                                <button class="btn btn-primary  btn-sm loadData" data-type="migration"
+                                                        data-project-id="{{ .Id }}" title="Migration" {{ if not
+                                                        .HasClone
+                                                        }}disabled{{ end }}>M
+                                                </button>
+                                                <button class="btn btn-primary  btn-sm loadData" data-type="service"
+                                                        data-project-id="{{ .Id }}" title="Service" {{ if not
+                                                        .HasClone
+                                                        }}disabled{{ end }}>S
+                                                </button>
+                                                <button class="btn btn-primary  btn-sm loadData" data-type="test"
+                                                        data-project-id="{{ .Id }}" title="Test File" {{ if not
+                                                        .HasClone
+                                                        }}disabled{{ end }}>T
+                                                </button>
+                                                <button class="btn btn-primary  btn-sm loadData" data-type="general"
+                                                        data-project-id="{{ .Id }}" title="General File" {{ if not
+                                                        .HasClone
+                                                        }}disabled{{ end }}>G
+                                                </button>
+                                                <button class="btn btn-warning btn-sm loadData" data-type="all"
+                                                        data-project-id="{{ .Id }}" title="General File" {{ if not
+                                                        .HasClone
+                                                        }}disabled{{ end }}>All
+                                                </button>
 
-                                                    <button class="btn btn-primary loadData" data-type="entity"
-                                                            data-project-id="{{ .Id }}" title="entity" {{ if not
-                                                            .HasClone
-                                                            }}disabled{{ end }}>E
-                                                    </button>
-                                                    <button class="btn btn-primary loadData" data-type="migration"
-                                                            data-project-id="{{ .Id }}" title="Migration" {{ if not
-                                                            .HasClone
-                                                            }}disabled{{ end }}>M
-                                                    </button>
-                                                    <button class="btn btn-primary loadData" data-type="service"
-                                                            data-project-id="{{ .Id }}" title="Service" {{ if not
-                                                            .HasClone
-                                                            }}disabled{{ end }}>S
-                                                    </button>
-                                                    <button class="btn btn-primary loadData" data-type="test"
-                                                            data-project-id="{{ .Id }}" title="Test File" {{ if not
-                                                            .HasClone
-                                                            }}disabled{{ end }}>T
-                                                    </button>
-                                                    <button class="btn btn-primary loadData" data-type="general"
-                                                            data-project-id="{{ .Id }}" title="General File" {{ if not
-                                                            .HasClone
-                                                            }}disabled{{ end }}>G
-                                                    </button>
-                                                    <button class="btn btn-warning loadData" data-type="all"
-                                                            data-project-id="{{ .Id }}" title="General File" {{ if not
-                                                            .HasClone
-                                                            }}disabled{{ end }}>All
-                                                    </button>
 
-                                                    <button class="btn btn-primary btn-sm sshCommand"
-                                                            data-type="generate-protobuf"
-                                                            data-project-id="{{ .Id }}" title="Generate Protobuff">protoc
-                                                    </button>
                                                 {{ end }}
 
                                                 {{ if eq .Type 2 }}
-                                                <div class="btn btn-success cloneRep" title="Clone repository"
-                                                     data-project-id="{{ .Id }}"><i class="fa fa-download"></i>
-                                                </div>
-
                                                 <button class="btn btn-primary btn-sm sshCommand"
                                                         data-type="generate-protobuf"
                                                         data-project-id="{{ .Id }}" title="Generate Protobuff">protoc
@@ -168,20 +230,11 @@
                                                 {{ end }}
 
                                                 {{ if eq .Type 3 }}
-                                                <div class="btn btn-success cloneGateway" title="Clone gateway"
-                                                     data-project-id="{{ .Id }}"><i class="fa fa-download"></i>
-                                                </div>
 
-                                                <button class="btn btn-warning loadData" data-type="gateway"
+                                                <button class="btn btn-warning btn-sm loadData" data-type="gateway"
                                                         data-project-id="{{ .Id }}" title="General File" {{ if not
                                                         .HasClone
                                                         }}disabled{{ end }}>All
-                                                </button>
-
-
-                                                <button class="btn btn-primary btn-sm sshCommand"
-                                                        data-type="generate-swagger-server"
-                                                        data-project-id="{{ .Id }}" title="go get -u && go mod tidy">generate swagger
                                                 </button>
 
                                                 {{ end }}

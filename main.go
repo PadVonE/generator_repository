@@ -8,7 +8,6 @@ import (
 	"generator/usecase"
 	"github.com/2q4t-plutus/envopt"
 	"github.com/google/go-github/v39/github"
-	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
@@ -51,7 +50,7 @@ func main() {
 
 	s.GitLabClient = gitlab.NewClient(nil, envopt.GetEnv("GITLAB_TOKEN"))
 
-	s.WsClients = make(map[*websocket.Conn]bool)
+	s.WsClients = make(map[*service.WsClient]bool)
 
 	go initWebSocketHook(s)
 

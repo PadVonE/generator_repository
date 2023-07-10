@@ -50,7 +50,7 @@ func (s *Service) CloneGateway(projectID string) (specificationProjectComponents
 
 	clonePath := filepath.FromSlash("./tmp/" + project.Name)
 
-	err = usecase.CloningRepository(project.GithubUrl,
+	err = usecase.CloningRepository(project.SpecificationUrl,
 		clonePath,
 		&http.BasicAuth{
 			Username: envopt.GetEnv("GITHUB_USER"),
@@ -119,13 +119,13 @@ func (s *Service) CloneGateway(projectID string) (specificationProjectComponents
 	release, _ := s.getLastRelease(org.Name, *repo.Name)
 	commit, _ := s.getLastCommit(org.Name, *repo.Name)
 
-	if release.GetTagName() != project.GithubReleaseTag {
-		project.GithubReleaseTag = release.GetTagName()
+	if release.GetTagName() != project.SpecificationReleaseTag {
+		project.SpecificationReleaseTag = release.GetTagName()
 	}
 
-	project.GithubLastCommitAuthor = commit.GetCommit().GetAuthor().GetName()
-	project.GithubLastCommitName = commit.GetCommit().GetMessage()
-	project.GithubLastCommitTime = commit.Commit.GetAuthor().GetDate()
+	project.SpecificationLastCommitAuthor = commit.GetCommit().GetAuthor().GetName()
+	project.SpecificationLastCommitName = commit.GetCommit().GetMessage()
+	project.SpecificationLastCommitTime = commit.Commit.GetAuthor().GetDate()
 
 	project.LastStructure = string(jsonStruct)
 	err = s.DB.Save(&project).Error

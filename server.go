@@ -115,6 +115,8 @@ func timeAgo(t time.Time) string {
 		return fmt.Sprintf("%d minutes ago", seconds/60)
 	case seconds < 86400:
 		return fmt.Sprintf("%d hours ago", seconds/3600)
+	case seconds > 100*86400:
+		return ""
 	default:
 		return fmt.Sprintf("%d days ago", seconds/86400)
 	}

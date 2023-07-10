@@ -11,34 +11,42 @@ const PROJECT_TYPE_USECASE = 2
 const PROJECT_TYPE_SPECIFICATION = 3
 
 type Project struct {
-	Id                     int32
-	CreatedAt              time.Time `gorm:"->;<-:create"`
-	UpdatedAt              time.Time
-	PushedAt               time.Time
-	Type                   int32
-	OrganizationId         int32
-	Name                   string
-	LocalPath              string
-	GithubUrl              string
-	GithubLastCommitName   string
-	GithubLastCommitTime   time.Time
-	GithubLastCommitAuthor string
-	GithubReleaseTag       string
+	Id             int32
+	CreatedAt      time.Time `gorm:"->;<-:create"`
+	UpdatedAt      time.Time
+	PushedAt       time.Time
+	Type           int32
+	OrganizationId int32
+	Name           string
+	LocalPath      string
 
-	GitlabUrl              string
-	GitlabLastCommitName   string
-	GitlabLastCommitTime   time.Time
-	GitlabLastCommitAuthor string
-	GitlabReleaseTag       string
+	SpecificationUrl              string
+	SpecificationLastCommitName   string
+	SpecificationLastCommitTime   time.Time
+	SpecificationLastCommitAuthor string
+	SpecificationReleaseTag       string
+
+	RealisationUrl              string
+	RealisationLastCommitName   string
+	RealisationLastCommitTime   time.Time
+	RealisationLastCommitAuthor string
+	RealisationReleaseTag       string
 
 	LastStructure string
 
-	LastStructureUnmarshal ProjectComponents `gorm:"-"`
-	NewTag                 string            `gorm:"-"`
-	NewCommitName          string            `gorm:"-"`
-	NewCommitDate          time.Time         `gorm:"-"`
-	HasClone               bool              `gorm:"-"`
-	IsNewProject           bool              `gorm:"-"`
+	LastStructureUnmarshal       ProjectComponents `gorm:"-"`
+	NewSpecificationTag          string            `gorm:"-"`
+	NewSpecificationCommitAuthor string            `gorm:"-"`
+	NewSpecificationCommitName   string            `gorm:"-"`
+	NewSpecificationCommitDate   time.Time         `gorm:"-"`
+
+	NewRealisationTag          string    `gorm:"-"`
+	NewRealisationCommitAuthor string    `gorm:"-"`
+	NewRealisationCommitName   string    `gorm:"-"`
+	NewRealisationCommitDate   time.Time `gorm:"-"`
+
+	HasClone     bool `gorm:"-"`
+	IsNewProject bool `gorm:"-"`
 }
 
 func (project *Project) TableName() string {
@@ -63,17 +71,27 @@ func GetTypeProjectByName(name string) int32 {
 
 }
 
-func GetPath(projectType int32, projectName string, organization *Organization) (clonePath, repositoryRealisation string) {
+func GetPath(projectType int32, projectName string, organization *Organization) (clonePath string) {
 	switch projectType {
 	case PROJECT_TYPE_REPOSITORY:
 		clonePath = organization.LocalPath + "/proto/github.com/" + organization.Name + "/" + projectName
-		repositoryRealisation = strings.TrimPrefix(projectName, "proto-")
 	case PROJECT_TYPE_USECASE:
 		clonePath = organization.LocalPath + "/proto/github.com/" + organization.Name + "/" + projectName
-		repositoryRealisation = strings.TrimPrefix(projectName, "proto-")
-
 	case PROJECT_TYPE_SPECIFICATION:
 		clonePath = organization.LocalPath + "/specification/" + projectName
+
+	case PROJECT_TYPE_NO_SET:
+	}
+	return
+}
+
+func GetRealisationName(projectType int32, projectName string) (repositoryRealisation string) {
+	switch projectType {
+	case PROJECT_TYPE_REPOSITORY:
+		repositoryRealisation = strings.TrimPrefix(projectName, "proto-")
+	case PROJECT_TYPE_USECASE:
+		repositoryRealisation = strings.TrimPrefix(projectName, "proto-")
+	case PROJECT_TYPE_SPECIFICATION:
 		repositoryRealisation = "gateway-" + strings.TrimPrefix(projectName, "specification-")
 
 	case PROJECT_TYPE_NO_SET:
