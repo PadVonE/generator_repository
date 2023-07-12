@@ -124,6 +124,7 @@ func (s *Service) Organization(ctx *gin.Context) {
 					mutex.Lock()
 					*hasDb = true
 					mutex.Unlock()
+
 					if project.RealisationLastCommitTime != *repo.LastActivityAt {
 
 						release, _ := s.getLastReleaseGitlab(repo)

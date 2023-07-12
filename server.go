@@ -44,6 +44,9 @@ func handler(s *service.Service) http.Handler {
 	// Клонирование гетвея и переработка его в струкуру проекта для дальнейшей обработки
 	api.GET("/clone-gateway", s.CloneGatewayApi)
 
+	// Синхронизаци
+	api.GET("/sync-realisation", s.SyncRealisationApi)
+
 	// создание структуры проекта папок для репозитория
 	api.GET("/generate-path-project", s.GeneratePathProjectRepositoryApi)
 

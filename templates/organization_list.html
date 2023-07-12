@@ -20,12 +20,11 @@
 
                                 <div class="clearfix"></div>
                             </div>
-                            <button class="btn btn-primary pressAllCloneRep">Clone all repositories</button>
+                            <button class="btn btn-primary pressAllCloneRep">Sync all spec</button>
+                            <button class="btn btn-primary goGetAll">Go get all</button>
 
                             <div class="x_content">
 
-                                <p>Add class <code>bulk_action</code> to table for bulk actions options on row
-                                    select</p>
 
                                 <div class="table-responsive">
                                     <table class="table table-striped jambo_table bulk_action">
@@ -132,9 +131,15 @@
                                                 <span class="badge badge-success">{{ .NewRealisationTag }}</span>
                                                 {{ end }}
                                                 <hr>
+
+                                                <div class="btn btn-secondary btn-sm syncRealisation       {{ if .NewRealisationCommitName }} btn-success{{ end }}"
+                                                     title="Synchronize repository"
+                                                     data-project-id="{{ .Id }}"><i class="fa fa-refresh"></i>
+                                                </div>
+
                                                 {{ if eq .Type 1 }}
 
-                                                <button class="btn btn-primary btn-sm sshCommand"
+                                                <button class="btn btn-primary btn-sm sshCommand goGetRealisation"
                                                         data-type="update-and-tidy-modules"
                                                         data-project-id="{{ .Id }}" title="go get -u && go mod tidy">go
                                                     get
@@ -145,7 +150,7 @@
 
                                                 {{ if eq .Type 2 }}
 
-                                                <button class="btn btn-primary btn-sm sshCommand"
+                                                <button class="btn btn-primary btn-sm sshCommand goGetRealisation"
                                                         data-type="update-and-tidy-modules"
                                                         data-project-id="{{ .Id }}" title="go get -u && go mod tidy">go
                                                     get
@@ -153,7 +158,7 @@
                                                 {{ end }}
 
                                                 {{ if eq .Type 3 }}
-                                                <button class="btn btn-primary btn-sm sshCommand"
+                                                <button class="btn btn-primary btn-sm sshCommand goGetRealisation"
                                                         data-type="update-and-tidy-modules"
                                                         data-project-id="{{ .Id }}" title="go get -u && go mod tidy">go
                                                     get
@@ -223,10 +228,7 @@
                                                 {{ end }}
 
                                                 {{ if eq .Type 2 }}
-                                                <button class="btn btn-primary btn-sm sshCommand"
-                                                        data-type="generate-protobuf"
-                                                        data-project-id="{{ .Id }}" title="Generate Protobuff">protoc
-                                                </button>
+
                                                 {{ end }}
 
                                                 {{ if eq .Type 3 }}
@@ -240,12 +242,6 @@
                                                 {{ end }}
 
                                                 {{ end }}
-
-                                                <button class="btn btn-primary btn-sm sshCommand"
-                                                        data-type="update-and-tidy-modules"
-                                                        data-project-id="{{ .Id }}" title="go get -u && go mod tidy">go
-                                                    get
-                                                </button>
 
                                             </td>
 
@@ -621,6 +617,7 @@
                 }
             });
         });
+
         $('.cloneGateway').on('click', function () {
             var button = $(this);
             var projectId = button.data('project-id');
@@ -652,10 +649,46 @@
             });
         });
 
+        $('.syncRealisation').on('click', function () {
+            var button = $(this);
+            var projectId = button.data('project-id');
+            var originalIcon = button.find('i');
+            var loadingIcon = $('<i class="fa fa-spinner fa-spin"></i>');
+
+            // Замена иконки на иконку загрузки
+            button.html(loadingIcon);
+
+            // Выполнение запроса
+            $.ajax({
+                url: '/api/sync-realisation',
+                type: 'GET',
+                data: {project_id: projectId},
+                success: function (data) {
+                    // Обработка успешного выполнения запроса
+                    console.log('Успешно:', data);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    // Обработка ошибок выполнения запроса
+                    console.error('Ошибка:', textStatus, errorThrown);
+                },
+                complete: function () {
+                    // Возврат исходной иконки после выполнения запроса
+                    button.html(originalIcon);
+                    // Изменение цвета кнопки на серый
+                    button.removeClass('btn-success').addClass('btn-secondary').attr('disabled', true);
+                }
+            });
+        });
 
         // Кнопка для нажатия всех кнопок 'cloneRep'
         $('.pressAllCloneRep').on('click', function () {
             $('.cloneRep').click();
+            $('.cloneGateway').click();
+        });
+
+        // Кнопка для нажатия всех кнопок 'Go get '
+        $('.goGetAll').on('click', function () {
+            $('.goGetRealisation').click();
         });
     });
 

@@ -41,7 +41,7 @@ func (s *Service) GenerateProtobuf(ctx *gin.Context) {
 
 	protoPath := organization.LocalPath + "/proto"
 
-	url := project.RealisationUrl
+	url := project.SpecificationUrl
 	url = strings.Replace(url, "https://", "", -1)
 	repoPath := strings.Replace(url, "http://", "", -1)
 

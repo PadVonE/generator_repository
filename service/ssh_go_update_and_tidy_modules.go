@@ -90,13 +90,13 @@ func realTimeOutput(cmd *exec.Cmd) {
 
 	err := cmd.Start()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 
 	wg.Wait()
 	err = cmd.Wait()
 
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 }
