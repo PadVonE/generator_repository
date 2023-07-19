@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"generator/entity"
+	"generator/helpers"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v39/github"
 	log "github.com/sirupsen/logrus"
@@ -12,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 )
 
 func (s *Service) Organization(ctx *gin.Context) {
@@ -162,6 +164,40 @@ func (s *Service) Organization(ctx *gin.Context) {
 			projects = append([]entity.Project{project}, projects...)
 		}
 	}
+
+	// добавляем данные о локольном репозитории
+	start := time.Now()
+
+	for i, _ := range projects {
+		wg.Add(2) // увеличиваем счетчик для двух горутин
+
+		go func(project *entity.Project) {
+			defer wg.Done() // уменьшаем счетчик после выполнения
+
+			project.RealisationRepoInfo, err = helpers.GetGitRepoInfo(project.LocalPath)
+
+		}(&projects[i])
+
+		go func(project *entity.Project) {
+			defer wg.Done() // уменьшаем счетчик после выполнения
+			var err error
+			path := entity.GetPath(project.Type, project.Name, &organization)
+			if path != "" {
+				project.SpecificationRepoInfo, err = helpers.GetGitRepoInfo(path)
+				if err != nil {
+					fmt.Println("Ошибка:", err)
+				}
+			}
+		}(&projects[i])
+	}
+
+	wg.Wait()
+
+	// Код для измерения
+	duration := time.Since(start)
+	// Отформатированная строка,
+	// например, "2h3m0.5s" или "4.503μs"
+	fmt.Println(duration)
 
 	ctx.HTML(200, "organization_list", gin.H{
 		"Projects":     projects,

@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"generator/helpers"
 	"strings"
 	"time"
 )
@@ -40,10 +41,14 @@ type Project struct {
 	NewSpecificationCommitName   string            `gorm:"-"`
 	NewSpecificationCommitDate   time.Time         `gorm:"-"`
 
+	SpecificationRepoInfo *helpers.GitRepoInfo `gorm:"-"`
+
 	NewRealisationTag          string    `gorm:"-"`
 	NewRealisationCommitAuthor string    `gorm:"-"`
 	NewRealisationCommitName   string    `gorm:"-"`
 	NewRealisationCommitDate   time.Time `gorm:"-"`
+
+	RealisationRepoInfo *helpers.GitRepoInfo `gorm:"-"`
 
 	HasClone     bool `gorm:"-"`
 	IsNewProject bool `gorm:"-"`

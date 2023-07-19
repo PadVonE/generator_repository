@@ -1,12 +1,21 @@
 {{ define "organization_list" }}
 {{ template "_header" .}}
 
-
+<link rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 <div class="jumbotron jumbotron-fluid">
 
     <!-- Example row of columns -->
+
+    <div class="console-button"><img
+            src="https://icons.iconarchive.com/icons/alecive/flatwoken/512/Apps-Terminal-Pc-104-icon.png"
+            style="width: 100%"></div>
+
     <div class="row">
-        <div class="col-md-8 col-sm-8 col-xs-8">
+        <div class="col-md-12 col-sm-12 col-xs-12 content-wrapper">
             <div class="container">
                 <!-- Example row of columns -->
                 <div class="row">
@@ -22,6 +31,26 @@
                             </div>
                             <button class="btn btn-primary pressAllCloneRep">Sync all spec</button>
                             <button class="btn btn-primary goGetAll">Go get all</button>
+                            <button class="btn btn-primary" id="openModal" data-org-id="1">Get Docker compose</button>
+
+                            <!-- Модальное окно -->
+                            <div class="modal" tabindex="-1" id="myModal">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Docker Code</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <pre><code id="dockerCode" class="yaml"></code></pre>
+                                            <!-- Блок для отображения кода Docker -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
 
                             <div class="x_content">
 
@@ -53,8 +82,15 @@
                                             <td>{{ .Name }}
                                                 <div><span class="badge badge-primary">{{ .LocalPath}}</span></div>
                                             </td>
-                                            <td><a href="{{ .SpecificationUrl }}" class="fa fa-link float-right" target="_blank"></a>
-                                                <span class="badge badge-warning"><i class="fa fa-code-fork"></i> main</span>
+                                            <td><a href="{{ .SpecificationUrl }}" class="fa fa-link float-right"
+                                                   target="_blank"></a>
+
+                                                {{ if .SpecificationRepoInfo}}
+                                                <span class="badge {{ if gt .SpecificationRepoInfo.ChangedFiles 0 }}badge-danger{{ else }}badge-light{{ end }}"><i
+                                                        class="fa fa-code-fork"></i>
+                                                                {{ .SpecificationRepoInfo.CurrentBranch }} / {{ .SpecificationRepoInfo.ChangedFiles }}
+                                                        </span>
+                                                {{ end }}
                                                 <span class="badge badge-dark"><i class="fa fa-user"></i> {{ .SpecificationLastCommitAuthor }}</span>
                                                 <span
                                                         class="badge badge-primary">{{ .SpecificationLastCommitName }}</span>
@@ -63,7 +99,8 @@
                                                 {{ if .NewSpecificationCommitName }}
                                                 <br>
                                                 <span class="badge badge-dark">{{ .NewSpecificationCommitAuthor }}</span>
-                                                <span class="badge badge-warning">{{ .NewSpecificationCommitName}}</span> {{
+                                                <span class="badge badge-warning">{{ .NewSpecificationCommitName}}</span>
+                                                {{
                                                 .NewSpecificationCommitDate | timeAgo }}
                                                 {{ end }}
                                                 <br>
@@ -112,7 +149,30 @@
                                                 </button>
                                                 {{ end }}
                                             </td>
-                                            <td><a href="{{ .RealisationUrl }}" class="fa fa-link float-right" target="_blank"></a>
+                                            <td><a href="{{ .RealisationUrl }}" class="fa fa-link float-right"
+                                                   target="_blank"></a>
+                                                {{ if .RealisationRepoInfo}}
+                                                    {{ if gt .RealisationRepoInfo.ChangedFiles 0 }}
+                                                        <span class="badge badge-danger"><i class="fa fa-code-fork"></i>
+                                                                {{ .RealisationRepoInfo.CurrentBranch }} / {{ .RealisationRepoInfo.ChangedFiles }}
+                                                        </span>
+                                                    {{ else }}
+                                                <div class="dropdown" style="float: left">
+                                                    <span class="badge badge-light dropdown-toggle" id="dropdownMenuRealisation-{{ .Id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                        <i class="fa fa-code-fork"></i>   {{ .RealisationRepoInfo.CurrentBranch }} / {{ .RealisationRepoInfo.ChangedFiles }}
+                                                    </span>
+
+                                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuRealisation-{{ .Id }}">
+                                                        {{ $id := .Id }}
+                                                        {{ range .RealisationRepoInfo.BranchList }}
+                                                        <a class="dropdown-item branch-item" data-project-id="{{ $id }}" data-branch="{{ . }}" href="#"> <i class="fa fa-code-fork"></i> {{ . }}</a>
+                                                        {{ end }}
+                                                        <a class="dropdown-item" href="#"> <i class="fa fa-plus"></i> add branch</a>
+                                                    </div>
+                                                </div>
+                                                    {{ end }}
+                                                {{ end }}
+
                                                 <span class="badge badge-dark">{{ .RealisationLastCommitAuthor }}</span>
                                                 <span
                                                         class="badge badge-primary">{{ .RealisationLastCommitName }}</span>
@@ -121,7 +181,8 @@
                                                 {{ if .NewRealisationCommitName }}
                                                 <br>
                                                 <span class="badge badge-dark">{{ .NewRealisationCommitAuthor }}</span>
-                                                <span class="badge badge-warning">{{ .NewRealisationCommitName}}</span> {{
+                                                <span class="badge badge-warning">{{ .NewRealisationCommitName}}</span>
+                                                {{
                                                 .NewRealisationCommitDate | timeAgo }}
                                                 {{ end }}
                                                 <br>
@@ -218,7 +279,7 @@
                                                         .HasClone
                                                         }}disabled{{ end }}>G
                                                 </button>
-                                                <button class="btn btn-warning btn-sm loadData" data-type="all"
+                                                <button class="btn btn-success btn-sm loadData" data-type="all"
                                                         data-project-id="{{ .Id }}" title="General File" {{ if not
                                                         .HasClone
                                                         }}disabled{{ end }}>All
@@ -233,7 +294,7 @@
 
                                                 {{ if eq .Type 3 }}
 
-                                                <button class="btn btn-warning btn-sm loadData" data-type="gateway"
+                                                <button class="btn btn-success btn-sm loadData" data-type="gateway"
                                                         data-project-id="{{ .Id }}" title="General File" {{ if not
                                                         .HasClone
                                                         }}disabled{{ end }}>All
@@ -262,7 +323,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4 col-sm-4 col-xs-4">
+        <div class="col-md-4 col-sm-4 col-xs-4 console-wrapper" style="display: none">
             <div class="container">
                 <!-- Example row of columns -->
                 <div class="row">
@@ -397,20 +458,80 @@
     }
 
     $(document).ready(function () {
+        // Слушаем клик по элементу с классом branch-item
+        $('.branch-item').on('click', function(e){
+            e.preventDefault(); // предотвращаем переход по ссылке
 
+            // Получаем id проекта и название ветки
+            var projectId = $(this).data('project-id');
+            var branch = $(this).data('branch');
+
+            // Выполняем AJAX-запрос
+            $.ajax({
+                url: '/api/git/checkout',
+                data: {
+                    project_id: projectId,
+                    branch: branch
+                },
+                success: function(data) {
+                    // Обновляем текст в элементе dropdown-toggle
+                    $('#dropdownMenuRealisation-' + projectId).html('<i class="fa fa-code-fork"></i> ' + branch + ' / 0' );
+                }
+            });
+        });
+
+        // запрос на генерацию докер композа
+        $('#openModal').click(function () {
+            var orgId = $(this).data('org-id');
+            $.ajax({
+                url: '/api/generate-docker?organization_id=' + orgId,
+                type: 'GET',
+                success: function (res) {
+                    if (res.err) {
+                        alert('Error: ' + res.err);
+                    } else {
+                        $('#dockerCode').text(res.code);
+                        hljs.highlightBlock($('#dockerCode')[0]);  // подсвечиваем код
+                        $('#myModal').modal('show');
+                    }
+                },
+                error: function (err) {
+                    alert('AJAX error: ' + err);
+                }
+            });
+        });
 
         // CONSOLE
 
 
-        $('.close-console').on('click', function () {
-            $(".console-container").html("<p class='prompt'>" + $(".console-container p:first-child").html() + "</p>")
+        $('.console-button').click(function () {
+            $('.console-wrapper').show();
+            $('.content-wrapper')
+                .removeClass('col-md-12 col-sm-12 col-xs-12')
+                .addClass('col-md-8 col-sm-8 col-xs-8');
+            $(" .console-button").hide()
         });
+
+        $('.close-console').click(function () {
+            $('.console-wrapper').hide();
+            $('.content-wrapper')
+                .removeClass('col-md-8 col-sm-8 col-xs-8')
+                .addClass('col-md-12 col-sm-12 col-xs-12');
+            $(" .console-button").show()
+        });
+
+
         $('.full-console').on('click', function () {
             $(".come-in").addClass("full-size")
+            $('.content-wrapper')
+                .removeClass('col-md-8 col-sm-8 col-xs-8')
+                .addClass('col-md-12 col-sm-12 col-xs-12');
         });
         $('.mini-console').on('click', function () {
             $(".come-in").removeClass("full-size")
-
+            $('.content-wrapper')
+                .removeClass('col-md-12 col-sm-12 col-xs-12')
+                .addClass('col-md-8 col-sm-8 col-xs-8');
         });
 
 

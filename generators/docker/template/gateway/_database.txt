@@ -1,0 +1,13 @@
+  {{ .ServiceName}}-database:
+    container_name: {{ .ServiceName}}-database
+    image: postgres:14.1-alpine
+    environment:
+      - POSTGRES_DB={{ .ServiceName}}
+      - POSTGRES_USER={{ .ServiceName}}
+      - POSTGRES_PASSWORD={{ .ServiceName}}
+      - TZ=GMT-3
+    ports:
+      - "{{ .ServicePort}}:5432"
+    volumes:
+      - ${HOME}/db-data/{{ .ServiceName}}:/var/lib/postgresql/data
+      - ${HOME}/docker/dumps:/var/dumps

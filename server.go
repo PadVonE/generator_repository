@@ -44,15 +44,13 @@ func handler(s *service.Service) http.Handler {
 	// Клонирование гетвея и переработка его в струкуру проекта для дальнейшей обработки
 	api.GET("/clone-gateway", s.CloneGatewayApi)
 
-	// Синхронизаци
+	// Синхронизаця комитов реализации
 	api.GET("/sync-realisation", s.SyncRealisationApi)
 
 	// создание структуры проекта папок для репозитория
 	api.GET("/generate-path-project", s.GeneratePathProjectRepositoryApi)
-
 	// Генератор файлов entity
 	api.GET("/generate-entity", s.GenerateEntityApi)
-
 	// Генератор файлов migration
 	api.GET("/generate-migration", s.GenerateMigrationApi)
 	// Генератор файлов migration
@@ -63,6 +61,11 @@ func handler(s *service.Service) http.Handler {
 	api.GET("/generate-test", s.GenerateServiceTestFileApi)
 	// Генератор  основных файлов
 	api.GET("/generate-general", s.GenerateGeneralFileApi)
+	// Генератор докер файла по организации
+	api.GET("/generate-docker", s.GenerateDockerApi)
+
+	// Генератор докер файла по организации
+	api.GET("/git/checkout", s.GitCheckout)
 
 	//
 	api.POST("/save-file", s.SaveFileApi)

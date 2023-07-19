@@ -312,7 +312,7 @@ func (s *Service) cloneProtoAndRealisation(project entity.Project, organization 
 				log.Errorf("Error: %v\n %s", err, organization.GitlabUrl+repositoryRealisation)
 			}
 
-			err := helpers.GitCheckoutDev(organization.LocalPath + "/implementation/" + repositoryRealisation)
+			err := helpers.GitCheckoutBranch(organization.LocalPath+"/implementation/"+repositoryRealisation, "dev")
 			if err != nil {
 				fmt.Printf("Error: %v\n", err)
 			}
