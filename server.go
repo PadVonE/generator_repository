@@ -44,6 +44,8 @@ func handler(s *service.Service) http.Handler {
 	// Синхронизаця комитов реализации
 	api.GET("/sync-realisation", s.SyncRealisationApi)
 
+	api.GET("/filter-projects", s.ProjectListApi)
+
 	// создание структуры проекта папок для репозитория
 	api.GET("/generate-path-project", s.GeneratePathProjectRepositoryApi)
 	// Генератор файлов entity

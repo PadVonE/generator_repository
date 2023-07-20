@@ -79,8 +79,50 @@
                                 </div>
                             </div>
 
-                            <div class="x_content">
+                            <!-- Модальное окно Добавление веток по задаче -->
+                            <div class="modal fade" id="addBranchByTask" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="exampleModalLabel">Добавление веток по задаче</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form>
+                                                <div class="form-group">
+                                                    <label for="branchName" class="col-form-label">Название ветки:</label>
+                                                    <input type="text" class="form-control" id="taskBranchName">
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <h6>Repository</h6>
+                                                        <div id="repository"></div>
+                                                    </div>
+                                                    <div class="col">
+                                                        <h6>Usecase</h6>
+                                                        <div id="usecase"></div>
+                                                    </div>
+                                                    <div class="col">
+                                                        <h6>Gateway</h6>
+                                                        <div id="gateway"></div>
+                                                    </div>
+                                                    <div class="col">
+                                                        <h6>Other</h6>
+                                                        <div id="other"></div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-primary">Создать ветки</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
+                            <div class="x_content">
 
                                 <div class="table-responsive">
                                     <table class="table table-striped jambo_table bulk_action">
@@ -516,6 +558,35 @@
 
     $(document).ready(function () {
 
+
+        // Запрос на сервер после открытия модального окна
+        $('#addBranchByTask').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Кнопка, которая запустила модальное окно
+            var branchName = button.data('name'); // Извлекаем информацию из data-* атрибутов
+
+            // Заполним поле ввода информацией из кнопки
+            var modal = $(this);
+            modal.find('.modal-body input#taskBranchName').val(branchName);
+
+            // Запрос на сервер
+            $.ajax({
+                url: '/api/filter-projects?organization_id=1',
+                type: 'GET',
+                success: function(data) {
+                    var projects = data.projects;
+                    var categories = ['repository', 'usecase', 'gateway', 'other'];
+
+                    categories.forEach(function(category) {
+                        $('#' + category).html("")
+                        projects[category].forEach(function(project) {
+                            var checkbox = '<div class="form-check"><input class="form-check-input" type="checkbox" value="' + project.id + '" id="project' + project.id + '"><label class="form-check-label" for="project' + project.id + '">' + project.name + '</label></div>';
+                            $('#' + category).append(checkbox);
+                        });
+                    });
+                }
+            });
+        });
+
         function getBadgeClass(status) {
             switch (status.toUpperCase()) {
                 case 'ГОТОВО':
@@ -562,7 +633,7 @@
                             '<img src="' + task.assignee_img + '" class="rounded-circle" alt="User Image">' + // Изображение пользователя
                             '</div>' +
                             '<div>' +
-                            '<button class="btn btn-primary">Создать ветку</button>' + // Кнопка создания ветки
+                            '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addBranchByTask" data-name="'+task.issue_key+'">Создать ветку</button>' + // Кнопка создания ветки
                             '</div>' +
                             '</div>' +
                             '</div>' +
@@ -578,7 +649,7 @@
         }
 
 
-        function GetTaskSattus() {
+        function GetTaskStatus() {
             $.ajax({
                 url: '/api/jira/list-status',
                 type: 'GET',
@@ -621,6 +692,10 @@
             var projectId = $('#projectId').val();
             var branchName = $('#branchName').val();
 
+            CreateBranch(projectId,branchName)
+        });
+
+        function CreateBranch(projectId,branchName){
             // Выполняем AJAX-запрос
             $.ajax({
                 url: '/api/git/create-branch',
@@ -636,8 +711,24 @@
                     $('#addBranchModal').modal('hide');
                 }
             });
-        });
+        }
 
+        // CreateBranches
+        $('#addBranchByTask .btn-primary').click(function() {
+            var branchName = $('#taskBranchName').val(); // Извлечь имя ветки из поля ввода
+
+            // Найти все отмеченные чекбоксы
+            var checkedBoxes = $('#addBranchByTask input:checkbox:checked');
+
+            // Пройтись по всем отмеченным чекбоксам и вызвать createBranch
+            checkedBoxes.each(function() {
+                var projectId = $(this).val();
+                CreateBranch(projectId, branchName);
+            });
+
+            // Закрыть модальное окно
+            $('#addBranchByTask').modal('hide');
+        });
 
         // Слушаем клик по элементу с классом branch-item
         $('.branch-item').on('click', function (e) {
@@ -696,7 +787,7 @@
         $('.jira-button').click(function () {
             $('.console-wrapper').hide();
             GetTasks()
-            GetTaskSattus()
+            GetTaskStatus()
             $('.task-wrapper').show();
             $('.content-wrapper')
                 .removeClass('col-md-12 col-sm-12 col-xs-12')

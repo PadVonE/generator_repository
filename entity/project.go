@@ -103,3 +103,18 @@ func GetRealisationName(projectType int32, projectName string) (repositoryRealis
 	}
 	return
 }
+
+func (project *Project) GetRealisationName() (repositoryRealisation string) {
+	switch project.Type {
+	case PROJECT_TYPE_REPOSITORY:
+		repositoryRealisation = strings.TrimPrefix(project.Name, "proto-")
+	case PROJECT_TYPE_USECASE:
+		repositoryRealisation = strings.TrimPrefix(project.Name, "proto-")
+	case PROJECT_TYPE_SPECIFICATION:
+		repositoryRealisation = "gateway-" + strings.TrimPrefix(project.Name, "specification-")
+
+	case PROJECT_TYPE_NO_SET:
+		repositoryRealisation = project.Name
+	}
+	return
+}
