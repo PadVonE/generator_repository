@@ -2,7 +2,6 @@ package service
 
 import (
 	"bufio"
-	"fmt"
 	"generator/entity"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -21,7 +20,7 @@ func (s *Service) SshUpdateAndTidyModules(ctx *gin.Context) {
 	err := s.DB.First(&project, "id = ?", projectID).Error
 
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		log.Printf("Error: %v\n", err)
 		return
 	}
 
@@ -34,7 +33,7 @@ func (s *Service) SshUpdateAndTidyModules(ctx *gin.Context) {
 
 		files, err := os.ReadDir(newPath)
 		if err != nil {
-			fmt.Println(err)
+			log.Error(err)
 			return
 		}
 

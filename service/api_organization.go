@@ -17,10 +17,11 @@ import (
 )
 
 type CreateOrganizationRequest struct {
-	Name      string `json:"name" binding:"required"`
-	GithubUrl string `json:"github_url" binding:"required"`
-	GitlabUrl string `json:"gitlab_url"`
-	LocalPath string `json:"local_path" binding:"required"`
+	Name        string `json:"name" binding:"required"`
+	GithubUrl   string `json:"github_url" binding:"required"`
+	GitlabUrl   string `json:"gitlab_url"`
+	LocalPath   string `json:"local_path" binding:"required"`
+	JiraProject string `json:"jira_project" binding:"required"`
 }
 
 func (s *Service) ListOrganizationApi(ctx *gin.Context) {
@@ -63,10 +64,11 @@ func (s *Service) CreateOrganizationStructApi(ctx *gin.Context) {
 	if organization.Id == 0 {
 
 		organization = entity.Organization{
-			Name:      req.Name,
-			GithubUrl: req.GithubUrl,
-			GitlabUrl: req.GitlabUrl,
-			LocalPath: req.LocalPath,
+			Name:        req.Name,
+			GithubUrl:   req.GithubUrl,
+			GitlabUrl:   req.GitlabUrl,
+			LocalPath:   req.LocalPath,
+			JiraProject: req.JiraProject,
 		}
 
 		if err := s.DB.Create(&organization).Error; err != nil {

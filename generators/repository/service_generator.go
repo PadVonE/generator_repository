@@ -37,7 +37,7 @@ func GenerateServiceCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 
 	dat, err := os.ReadFile(path)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		return
 	}
 	source := string(dat)

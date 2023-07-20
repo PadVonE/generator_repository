@@ -5,6 +5,13 @@
   {"key": "GITHUB_TOKEN", "critical": true, "default": ""},
   {"key": "GITLAB_TOKEN", "critical": true, "default": ""},
 
+
+  {"key": "JIRA_USER", "critical": true, "default": ""},
+  {"key": "JIRA_TOKEN", "critical": true, "default": ""},
+  {"key": "JIRA_BASE_URL", "critical": true, "default": ""},
+
+
+
   {"key": "SWAGGER_VERSION", "critical": true, "default": "v0.30.0"},
 
   {"key": "POSTGRES_HOST", "critical": true, "default": "127.0.0.1"},

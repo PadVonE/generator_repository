@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"os/exec"
-	"strings"
 )
 
 func (s *Service) GenerateProtobuf(ctx *gin.Context) {
@@ -41,9 +40,7 @@ func (s *Service) GenerateProtobuf(ctx *gin.Context) {
 
 	protoPath := organization.LocalPath + "/proto"
 
-	url := project.SpecificationUrl
-	url = strings.Replace(url, "https://", "", -1)
-	repoPath := strings.Replace(url, "http://", "", -1)
+	repoPath := project.Name
 
 	cmd := exec.Command(
 		"docker", "run", "--rm",

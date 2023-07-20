@@ -2,17 +2,20 @@
 {{ template "_header" .}}
 
 <link rel="stylesheet"
-      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/default.min.css">
-<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+      href="/static/css/highlight.min.css">
+<script src="/static/js/highlight.min.js"></script>
+<script src="/static/js/popper.min.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
 <div class="jumbotron jumbotron-fluid">
 
     <!-- Example row of columns -->
 
     <div class="console-button"><img
-            src="https://icons.iconarchive.com/icons/alecive/flatwoken/512/Apps-Terminal-Pc-104-icon.png"
+            src="/static/images/console.png"
             style="width: 100%"></div>
+
+    <div class="jira-button"><img
+            src="/static/images/jira.png"></div>
 
     <div class="row">
         <div class="col-md-12 col-sm-12 col-xs-12 content-wrapper">
@@ -51,6 +54,30 @@
                                 </div>
                             </div>
 
+                            <!-- Модальное Добавления ветки -->
+                            <div class="modal" id="addBranchModal" tabindex="-1" role="dialog">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Add Branch</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form id="addBranchForm">
+                                                <div class="form-group">
+                                                    <label for="branchName">Branch Name</label>
+                                                    <input type="text" class="form-control" id="branchName"
+                                                           placeholder="Enter branch name">
+                                                    <input type="hidden" id="projectId">
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">Submit</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="x_content">
 
@@ -152,25 +179,32 @@
                                             <td><a href="{{ .RealisationUrl }}" class="fa fa-link float-right"
                                                    target="_blank"></a>
                                                 {{ if .RealisationRepoInfo}}
-                                                    {{ if gt .RealisationRepoInfo.ChangedFiles 0 }}
-                                                        <span class="badge badge-danger"><i class="fa fa-code-fork"></i>
+                                                {{ if gt .RealisationRepoInfo.ChangedFiles 0 }}
+                                                <span class="badge badge-danger"><i class="fa fa-code-fork"></i>
                                                                 {{ .RealisationRepoInfo.CurrentBranch }} / {{ .RealisationRepoInfo.ChangedFiles }}
                                                         </span>
-                                                    {{ else }}
-                                                <div class="dropdown" style="float: left">
-                                                    <span class="badge badge-light dropdown-toggle" id="dropdownMenuRealisation-{{ .Id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                {{ else }}
+                                                <div class="dropdown" style="float: left; margin-right: 4px">
+                                                    <span class="badge badge-light dropdown-toggle"
+                                                          id="dropdownMenuRealisation-{{ .Id }}" data-toggle="dropdown"
+                                                          aria-haspopup="true" aria-expanded="false">
                                                         <i class="fa fa-code-fork"></i>   {{ .RealisationRepoInfo.CurrentBranch }} / {{ .RealisationRepoInfo.ChangedFiles }}
                                                     </span>
 
-                                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuRealisation-{{ .Id }}">
+                                                    <div class="dropdown-menu"
+                                                         aria-labelledby="dropdownMenuRealisation-{{ .Id }}">
                                                         {{ $id := .Id }}
                                                         {{ range .RealisationRepoInfo.BranchList }}
-                                                        <a class="dropdown-item branch-item" data-project-id="{{ $id }}" data-branch="{{ . }}" href="#"> <i class="fa fa-code-fork"></i> {{ . }}</a>
+                                                        <a class="dropdown-item branch-item" data-project-id="{{ $id }}"
+                                                           data-branch="{{ . }}" href="#"> <i
+                                                                class="fa fa-code-fork"></i> {{ . }}</a>
                                                         {{ end }}
-                                                        <a class="dropdown-item" href="#"> <i class="fa fa-plus"></i> add branch</a>
+                                                        <a class="dropdown-item add-branch" href="#"
+                                                           data-project-id="{{ $id }}"> <i class="fa fa-plus"></i> add
+                                                            branch</a>
                                                     </div>
                                                 </div>
-                                                    {{ end }}
+                                                {{ end }}
                                                 {{ end }}
 
                                                 <span class="badge badge-dark">{{ .RealisationLastCommitAuthor }}</span>
@@ -347,6 +381,29 @@
                 </div>
             </div>
         </div>
+
+        <div class="col-md-4 col-sm-4 col-xs-4 task-wrapper" style="display: none">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-12">
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="statusDropdownButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Выберите статус
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="statusDropdownButton" id="statusDropdown">
+                                <!-- Статусы будут добавлены здесь -->
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="tasks">
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -458,8 +515,132 @@
     }
 
     $(document).ready(function () {
+
+        function getBadgeClass(status) {
+            switch (status.toUpperCase()) {
+                case 'ГОТОВО':
+                    return 'badge-success';
+                case 'К ВЫПОЛНЕНИЮ':
+                    return 'badge-danger';
+                case 'REVIEW':
+                    return 'badge-warning';
+                default:
+                    return 'badge-primary';
+            }
+        }
+
+        // Список задач
+        function GetTasks(status){
+            $.ajax({
+                url: "/api/jira/list-task",
+                type: "GET",
+                dataType: "json",
+                data: {
+                    status: status, // Здесь мы передаем выбранный статус как параметр запроса
+                    organization_id: {{ .Organization.Id}}, // Здесь мы передаем выбранный статус как параметр запроса
+                },
+                success: function(data) {
+                    if (data.err) {
+                        console.error(data.err);
+                        return;
+                    }
+                    $(".tasks").html("")
+                    let tasks = data.tasks;
+                    for (let i = 0; i < tasks.length; i++) {
+                        let task = tasks[i];
+                        let badgeClass = getBadgeClass(task.status);
+                        let taskHtml = '<div class="col-md-12">' +
+                            '<div class="card">' +
+                            '<div class="card-body">' +
+                            '<h5 class="card-title">' +
+                            '<span class="badge ' + badgeClass + ' float-right">' + task.status + '</span>' + // Статус
+                            task.issue_key + // Ключ задачи
+                            '</h5>' +
+                            '<p class="card-text">' + task.summary + '</p>' + // Название задачи
+                            '<div class="d-flex justify-content-between align-items-center task-user-img">' +
+                            '<div>' +
+                            '<img src="' + task.assignee_img + '" class="rounded-circle" alt="User Image">' + // Изображение пользователя
+                            '</div>' +
+                            '<div>' +
+                            '<button class="btn btn-primary">Создать ветку</button>' + // Кнопка создания ветки
+                            '</div>' +
+                            '</div>' +
+                            '</div>' +
+                            '</div>' +
+                            '</div>';
+                        $(".tasks").append(taskHtml);
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error(textStatus, errorThrown);
+                }
+            });
+        }
+
+
+        function GetTaskSattus() {
+            $.ajax({
+                url: '/api/jira/list-status',
+                type: 'GET',
+                success: function(data) {
+                    $('#statusDropdown').html("")
+                    // Добавляем каждый статус в выпадающий список
+                    $('#statusDropdown').append(' <a class="dropdown-item" href="#" data-status="">Все статусы</a>');
+                    $.each(data.statuses, function(index, status) {
+                        $('#statusDropdown').append('<a class="dropdown-item" href="#" data-status="'+status.id+'">'+status.name+'</a>');
+                    });
+                }
+            });
+        }
+
+
+        $('#statusDropdown').on('click', 'a', function(e) {
+            e.preventDefault();
+
+            // Устанавливаем выбранный статус на кнопке
+            $('#statusDropdownButton').text($(this).text());
+
+
+            GetTasks($(this).data('status'))
+            // Запрашиваем задачи с выбранным статусом
+
+        });
+
+
+        // Открываем модальное окно при клике на 'add branch'
+        $(document).on('click', '.add-branch', function (e) {
+            e.preventDefault();
+            var projectId = $(this).data('project-id');
+            $('#projectId').val(projectId);
+            $('#addBranchModal').modal('show');
+        });
+
+        // Отправляем форму
+        $('#addBranchForm').on('submit', function (e) {
+            e.preventDefault();
+            var projectId = $('#projectId').val();
+            var branchName = $('#branchName').val();
+
+            // Выполняем AJAX-запрос
+            $.ajax({
+                url: '/api/git/create-branch',
+                method: 'GET',
+                data: {
+                    project_id: projectId,
+                    branch: branchName
+                },
+                success: function (data) {
+                    // Обновляем текст в элементе dropdown-toggle
+                    $('#dropdownMenuRealisation-' + projectId).html('<i class="fa fa-code-fork"></i> ' + branchName + ' / 0');
+                    // Закрываем модальное окно
+                    $('#addBranchModal').modal('hide');
+                }
+            });
+        });
+
+
         // Слушаем клик по элементу с классом branch-item
-        $('.branch-item').on('click', function(e){
+        $('.branch-item').on('click', function (e) {
             e.preventDefault(); // предотвращаем переход по ссылке
 
             // Получаем id проекта и название ветки
@@ -473,9 +654,9 @@
                     project_id: projectId,
                     branch: branch
                 },
-                success: function(data) {
+                success: function (data) {
                     // Обновляем текст в элементе dropdown-toggle
-                    $('#dropdownMenuRealisation-' + projectId).html('<i class="fa fa-code-fork"></i> ' + branch + ' / 0' );
+                    $('#dropdownMenuRealisation-' + projectId).html('<i class="fa fa-code-fork"></i> ' + branch + ' / 0');
                 }
             });
         });
@@ -509,7 +690,18 @@
             $('.content-wrapper')
                 .removeClass('col-md-12 col-sm-12 col-xs-12')
                 .addClass('col-md-8 col-sm-8 col-xs-8');
-            $(" .console-button").hide()
+            $('.task-wrapper').hide();
+        });
+
+        $('.jira-button').click(function () {
+            $('.console-wrapper').hide();
+            GetTasks()
+            GetTaskSattus()
+            $('.task-wrapper').show();
+            $('.content-wrapper')
+                .removeClass('col-md-12 col-sm-12 col-xs-12')
+                .addClass('col-md-8 col-sm-8 col-xs-8');
+
         });
 
         $('.close-console').click(function () {
@@ -517,7 +709,6 @@
             $('.content-wrapper')
                 .removeClass('col-md-8 col-sm-8 col-xs-8')
                 .addClass('col-md-12 col-sm-12 col-xs-12');
-            $(" .console-button").show()
         });
 
 

@@ -16,9 +16,6 @@ func handler(s *service.Service) http.Handler {
 	handler.SetHTMLTemplate(setupTemplates())
 
 	handler.Static("/static", "./static/")
-	handler.Static("/css", "./templates/css/")
-	handler.Static("/js", "./templates/js/")
-	handler.Static("/images", "./templates/images/")
 
 	handler.GET("/ws", s.WsHandleConnections)
 
@@ -64,8 +61,15 @@ func handler(s *service.Service) http.Handler {
 	// Генератор докер файла по организации
 	api.GET("/generate-docker", s.GenerateDockerApi)
 
-	// Генератор докер файла по организации
+	// GIT
+	// Переход в ветку
 	api.GET("/git/checkout", s.GitCheckout)
+	// Создание новой ветки
+	api.GET("/git/create-branch", s.GitCreateBranch)
+
+	// JIRA
+	api.GET("/jira/list-task", s.ListTask)
+	api.GET("/jira/list-status", s.ListStatus)
 
 	//
 	api.POST("/save-file", s.SaveFileApi)

@@ -24,7 +24,7 @@ func GenerateEntity(strc entity.Struct, packageStruct entity.PackageStruct, crea
 
 	dat, err := os.ReadFile(path)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		return
 	}
 	source := string(dat)

@@ -3,6 +3,7 @@ package helpers
 import (
 	"fmt"
 	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"os/exec"
 	"path/filepath"
@@ -78,4 +79,58 @@ func GetGitRepoInfo(repoPath string) (getRepo *GitRepoInfo, err error) {
 		ChangedFiles:  modifiedFiles,
 		BranchList:    branchList,
 	}, nil
+}
+
+func CreateBranch(repoPath string, branchName string) error {
+	// Открываем репозиторий
+	r, err := git.PlainOpen(repoPath)
+	if err != nil {
+		return err
+	}
+
+	// Получаем HEAD-ссылку
+	headRef, err := r.Head()
+	if err != nil {
+		return err
+	}
+
+	// Создаем новую ветку
+	ref := plumbing.NewHashReference(plumbing.ReferenceName("refs/heads/"+branchName), headRef.Hash())
+
+	// Сохраняем в конфиг
+	err = r.Storer.SetReference(ref)
+	if err != nil {
+		return err
+	}
+
+	// Получаем Worktree
+	w, err := r.Worktree()
+	if err != nil {
+		return err
+	}
+
+	// Переключаемся на новую ветку
+	err = w.Checkout(&git.CheckoutOptions{
+		Branch: ref.Name(),
+	})
+	if err != nil {
+		return err
+	}
+
+	// Сохраняем конфиг
+	cfg, err := r.Config()
+	if err != nil {
+		return err
+	}
+	cfg.Branches[branchName] = &config.Branch{
+		Name:   branchName,
+		Remote: "origin",
+		Merge:  plumbing.ReferenceName("refs/heads/" + branchName),
+	}
+	err = r.Storer.SetConfig(cfg)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

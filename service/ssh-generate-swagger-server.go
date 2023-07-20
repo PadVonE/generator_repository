@@ -19,7 +19,7 @@ func (s *Service) GenerateSwaggerServer(ctx *gin.Context) {
 	err := s.DB.First(&project, "id = ?", projectID).Error
 
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		log.Printf("Error: %v\n", err)
 		return
 	}
 

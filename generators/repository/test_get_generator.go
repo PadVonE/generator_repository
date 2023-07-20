@@ -26,7 +26,7 @@ func GenerateTestGetCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 
 	dat, err := os.ReadFile(path)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		return
 	}
 	source := string(dat)
@@ -43,7 +43,7 @@ func GenerateTestGetCode(strc entity.ProtoInterfaceMethod, packageStruct entity.
 
 	datFunc, errFunc := os.ReadFile(pathFunc)
 	if errFunc != nil {
-		log.Println(errFunc)
+		log.Error(errFunc)
 		return
 	}
 	sourceFunc := string(datFunc)

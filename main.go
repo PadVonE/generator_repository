@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"generator/service"
 	"github.com/2q4t-plutus/envopt"
+	"github.com/andygrunwald/go-jira"
 	"github.com/google/go-github/v39/github"
 	log "github.com/sirupsen/logrus"
 	"github.com/xanzy/go-gitlab"
@@ -29,7 +30,7 @@ func init() {
 }
 
 func main() {
-
+	var err error
 	//var err error
 	envopt.Validate("envopt.json")
 
@@ -47,6 +48,16 @@ func main() {
 	s.GitLabClient = gitlab.NewClient(nil, envopt.GetEnv("GITLAB_TOKEN"))
 
 	s.WsClients = make(map[*service.WsClient]bool)
+
+	tp := jira.BasicAuthTransport{
+		Username: envopt.GetEnv("JIRA_USER"),
+		Password: envopt.GetEnv("JIRA_TOKEN"),
+	}
+
+	s.JiraClient, err = jira.NewClient(tp.Client(), envopt.GetEnv("JIRA_BASE_URL"))
+	if err != nil {
+		log.Error(err)
+	}
 
 	go initWebSocketHook(s)
 

@@ -79,9 +79,9 @@ func GetTypeProjectByName(name string) int32 {
 func GetPath(projectType int32, projectName string, organization *Organization) (clonePath string) {
 	switch projectType {
 	case PROJECT_TYPE_REPOSITORY:
-		clonePath = organization.LocalPath + "/proto/github.com/" + organization.Name + "/" + projectName
+		clonePath = organization.LocalPath + "/proto/" + projectName
 	case PROJECT_TYPE_USECASE:
-		clonePath = organization.LocalPath + "/proto/github.com/" + organization.Name + "/" + projectName
+		clonePath = organization.LocalPath + "/proto/" + projectName
 	case PROJECT_TYPE_SPECIFICATION:
 		clonePath = organization.LocalPath + "/specification/" + projectName
 

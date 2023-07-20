@@ -23,7 +23,7 @@ func GenerateGeneral(file string, packageStruct entity.PackageStruct, tableNames
 
 	dat, err := os.ReadFile(path)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		return
 	}
 	source := string(dat)
